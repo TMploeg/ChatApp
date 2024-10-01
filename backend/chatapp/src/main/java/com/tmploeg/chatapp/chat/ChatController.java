@@ -10,10 +10,9 @@ import org.springframework.stereotype.Controller;
 public class ChatController {
   private final ChatMessageService chatMessageService;
 
-  @MessageMapping("/chat")
-  @SendTo("/topic/messages")
+  @MessageMapping("/send")
+  @SendTo("/topic")
   public ChatMessage send(String content) throws Exception {
-    System.out.println("TEstTestsTEST");
     return chatMessageService.save(content);
   }
 }

@@ -4,10 +4,6 @@
   background-color: #242424;
 }
 
-.app {
-  font-size: 30px;
-}
-
 .roboto-light {
   font-family: "Roboto", system-ui;
   font-weight: 300;
@@ -18,4 +14,11 @@
   font-family: "Roboto", system-ui;
   font-weight: 900;
   font-style: normal;
+}
+
+.chat-input {
+  padding: 20px;
+}
+.chat-input > input {
+  font-size: 30px;
 }
