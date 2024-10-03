@@ -6,8 +6,6 @@ export default function useWebSocket() {
     Stomp.client(import.meta.env.VITE_WEBSOCKET_URL)
   );
 
-    const stompClient = Stomp.over(ws);
-    stompClient.connect({}, handleConnected);
   useEffect(() => {
     stompClient.configure({
       connectHeaders: {},
