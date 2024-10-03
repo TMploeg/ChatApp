@@ -1,46 +1,39 @@
 import { ActivationState, CompatClient, Stomp } from "@stomp/stompjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function useWebSocket() {
-  const [stompClient, setStompClient] = useState<CompatClient>();
-  const [handleConnected, setHandleConnected] = useState<() => void>(() => {});
-
-  function connect() {
-    const ws = new WebSocket(import.meta.env.VITE_WEBSOCKET_URL);
+  const [stompClient, setStompClient] = useState<CompatClient>(
+    Stomp.client(import.meta.env.VITE_WEBSOCKET_URL)
+  );
 
     const stompClient = Stomp.over(ws);
     stompClient.connect({}, handleConnected);
+  useEffect(() => {
+    stompClient.configure({
+      connectHeaders: {},
+    });
+  }, []);
 
-    setStompClient(stompClient);
+  function connect() {
+    stompClient.activate();
   }
 
   function disconnect() {
-    if (!stompClient) {
+    if (stompClient.state !== ActivationState.ACTIVE) {
+      console.warn("cannot disconnect: already disconnected");
       return;
     }
 
-    if (stompClient.state === ActivationState.ACTIVE) {
-      stompClient.disconnect();
-      setStompClient(undefined);
-    } else {
-      console.warn("cannot disconnect: already disconnected");
-    }
+    stompClient.deactivate();
   }
 
-  function send(message: string) {
-    if (!stompClient || stompClient.state !== ActivationState.ACTIVE) {
+  function send(content: string, destination: string) {
+    if (stompClient.state !== ActivationState.ACTIVE) {
       console.error("cannot send message when not connected");
       return;
     }
 
-    stompClient.publish({ destination: "/app/send", body: message });
+    stompClient.publish({ destination: `/app/${destination}`, body: content });
   }
-
-  function subscribe(destination: string) {}
-
-  function onConnected(handler: () => void) {
-    setHandleConnected(handler);
-  }
-
-  return { connect, disconnect, send, subscribe, onConnected };
+  return { connect, disconnect, send };
 }

@@ -1,26 +1,32 @@
 package com.tmploeg.chatapp.users;
 
 import jakarta.persistence.Entity;
-import java.util.Collection;
-import java.util.List;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import java.security.Principal;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-@Entity
+@Entity(name = "users")
 @NoArgsConstructor
 @Getter
-public class User implements UserDetails {
-  private String username;
+public class User implements Principal {
+  @Id private String username;
 
   private String password;
 
-  private Collection<GrantedAuthority> authorities;
+  @Enumerated(EnumType.ORDINAL)
+  private UserRole role;
 
   public User(String username, String password) {
     this.username = username;
     this.password = password;
-    this.authorities = List.of(UserRole.USER::toString);
+    this.role = UserRole.USER;
+  }
+
+  @Override
+  public String getName() {
+    return username;
   }
 }

@@ -1,13 +1,11 @@
-import { KeyboardEventHandler, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useWebSocket } from "./hooks";
 
 function App() {
-  const { connect, disconnect, send, onConnected } = useWebSocket();
-  const [connected, setConnected] = useState<boolean>(false);
+  const { connect, disconnect, send } = useWebSocket();
 
   useEffect(() => {
     connect();
-    onConnected(() => setConnected(true));
 
     return disconnect;
   }, []);
@@ -19,9 +17,7 @@ function App() {
   );
 
   function sendMessage(message: string) {
-    if (connected) {
-      send(message);
-    }
+    send(message, "send");
   }
 }
 

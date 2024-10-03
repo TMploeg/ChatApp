@@ -40,7 +40,7 @@ public class JWTService {
         .compact();
   }
 
-  public Optional<BearerToken> readToken(String token) {
+  public Optional<User> readToken(String token) {
     if (token == null) {
       throw new IllegalArgumentException("token is null");
     }
@@ -49,15 +49,16 @@ public class JWTService {
       Claims claims =
           Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
 
+      if (!claims.getExpiration().after(new Date())) {
+        return Optional.empty();
+      }
+
       User user =
           userRepository
               .findById(claims.getSubject())
               .orElseThrow(() -> new JwtException("subject not found"));
 
-      TokenState state =
-          !claims.getExpiration().after(new Date()) ? TokenState.EXPIRED : TokenState.VALID;
-
-      return Optional.of(new BearerToken(user, state));
+      return Optional.of(user);
     } catch (JwtException ex) {
       LOGGER.atWarn().log("Failed to read bearer token: " + ex.getMessage() + "'");
 
