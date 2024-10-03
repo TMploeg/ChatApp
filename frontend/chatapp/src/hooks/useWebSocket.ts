@@ -2,7 +2,7 @@ import { ActivationState, CompatClient, Stomp } from "@stomp/stompjs";
 import { useEffect, useState } from "react";
 
 export default function useWebSocket() {
-  const [stompClient, setStompClient] = useState<CompatClient>(
+  const [stompClient] = useState<CompatClient>(
     Stomp.client(import.meta.env.VITE_WEBSOCKET_URL)
   );
 
