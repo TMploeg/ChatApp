@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Socket } from "../../../hooks/useWebSocket";
-import { IMessage } from "@stomp/stompjs";
 import Message from "../../../models/message";
 import "../Chat.css";
 import { ClipLoader } from "react-spinners";
@@ -12,9 +11,16 @@ import { useNavigate } from "react-router-dom";
 interface Props {
   socket: Socket;
   connected: boolean;
+  history?: Message[];
+  clearHistory: () => void;
 }
-export default function GlobalChatPage({ socket, connected }: Props) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export default function GlobalChatPage({
+  socket,
+  connected,
+  history,
+  clearHistory,
+}: Props) {
+  const [messages, setMessages] = useState<Message[]>();
   const [newMessage, setNewMessage] = useState<string>("");
   const { get: getJWT, set: setJWT } = useStorage<JWT>(StorageLocation.JWT);
   const navigate = useNavigate();
@@ -39,15 +45,24 @@ export default function GlobalChatPage({ socket, connected }: Props) {
       return;
     }
 
-    const subscription = socket.subscribe<Message>("/chat", addMessage);
+    let subscription = socket.subscribe<Message>("/chat", handleNewMessage);
 
     return () => subscription.unsubscribe();
   }, [connected]);
 
-  if (isLoading()) {
+  useEffect(() => {
+    if (history === undefined) {
+      return;
+    }
+
+    setMessages(history);
+    clearHistory();
+  }, [history]);
+
+  if (messages === undefined) {
     return (
       <div>
-        <ClipLoader />;
+        <ClipLoader />
       </div>
     );
   }
@@ -64,22 +79,31 @@ export default function GlobalChatPage({ socket, connected }: Props) {
       </div>
       <div className="chat-message-container">
         {messages.map((message) => (
-          <div className="chat-message">{message.content}</div>
+          <div
+            className={`chat-message ${
+              message.sender === username ? "owned" : null
+            }`}
+          >
+            {message.content}
+          </div>
         ))}
       </div>
     </div>
   );
 
-  function isLoading(): boolean {
-    return !connected || username === undefined;
-  }
-
   function send() {
     socket.send("send", newMessage);
   }
 
-  function addMessage(message: Message) {
+  function handleNewMessage(message: Message) {
+    console.log("NEW MESSAGE: ", message.content);
+
     setMessages((oldMessages) => {
+      if (!oldMessages) {
+        console.warn("can't handle new message: not initialized");
+        return undefined;
+      }
+
       return [message, ...oldMessages];
     });
   }

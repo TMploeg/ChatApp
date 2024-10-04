@@ -1,20 +1,37 @@
 import { useEffect, useState } from "react";
 import { useStorage, useWebSocket } from "./hooks";
-import { ClipLoader } from "react-spinners";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { StorageLocation } from "./enums/StorageLocation";
 import LoginPage from "./components/auth/login/LoginPage";
 import GlobalChatPage from "./components/chat/global/GlobalChatPage";
 import { JWT } from "./models/auth";
+import Message from "./models/message";
+
+const CHAT_HISTORY_ROUTE = "/user/queue/history";
+
+interface HistoryMessage {
+  data?: Message[];
+}
 
 function App() {
-  const socket = useWebSocket();
+  const socket = useWebSocket({ enableDebug: true });
   const [connected, setConnected] = useState<boolean>(false);
   const { get: getToken } = useStorage<JWT>(StorageLocation.JWT);
   const [loggedIn, setLoggedIn] = useState<boolean>(!!getToken());
+  const [history, setHistory] = useState<Message[]>();
 
   useEffect(() => {
-    socket.onConnect(() => setConnected(true));
+    socket.onConnect(() => {
+      socket.subscribe<HistoryMessage>(CHAT_HISTORY_ROUTE, (response) => {
+        // when subscribing to history, server will send an empty message to signal successful subscription
+        if (!response.data) {
+          setConnected(true);
+          return;
+        }
+
+        setHistory(response.data);
+      });
+    });
     socket.onDisconnect(() => setConnected(false));
   }, []);
 
@@ -24,7 +41,6 @@ function App() {
     }
 
     if (loggedIn) {
-      console.log(getToken());
       socket.connect();
     } else {
       socket.disconnect();
@@ -40,7 +56,14 @@ function App() {
           <>
             <Route
               path="/"
-              element={<GlobalChatPage socket={socket} connected={connected} />}
+              element={
+                <GlobalChatPage
+                  socket={socket}
+                  connected={connected}
+                  history={history}
+                  clearHistory={() => setHistory(undefined)}
+                />
+              }
             />
           </>
         ) : (

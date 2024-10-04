@@ -25,7 +25,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
   public void configureMessageBroker(MessageBrokerRegistry registry) {
     registry.enableSimpleBroker(StompRoutes.BROKERS);
     registry.setApplicationDestinationPrefixes(StompRoutes.APP_DESTINATION);
-    //    registry.setUserDestinationPrefix(Routing.Stomp.USER_DESTINATION);
+    registry.setUserDestinationPrefix(StompRoutes.USER_DESTINATION);
   }
 
   @Override

@@ -1,5 +1,6 @@
 import {
   ActivationState,
+  Client,
   CompatClient,
   IMessage,
   Stomp,
@@ -12,9 +13,12 @@ import { JWT } from "../models/auth";
 
 const AUTH_HEADER_NAME = "Authorization";
 
-export default function useWebSocket(): Socket {
-  const [stompClient] = useState<CompatClient>(
-    Stomp.client(import.meta.env.VITE_WEBSOCKET_URL)
+export interface WebSocketConfig {
+  enableDebug?: boolean;
+}
+export default function useWebSocket(config?: WebSocketConfig): Socket {
+  const [stompClient] = useState<Client>(
+    getClient(config?.enableDebug ?? false)
   );
   const { get: getJWT } = useStorage<JWT>(StorageLocation.JWT);
 
@@ -86,4 +90,14 @@ export interface Socket {
     destination: string,
     callback: (message: T) => void
   ) => StompSubscription;
+}
+
+function getClient(enableDebug: boolean): Client {
+  const client = Stomp.client(import.meta.env.VITE_WEBSOCKET_URL);
+
+  if (!enableDebug) {
+    client.debug = () => {};
+  }
+
+  return client;
 }
