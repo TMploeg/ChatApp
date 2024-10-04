@@ -4,6 +4,12 @@
   background-color: #242424;
 }
 
+.app {
+  font-family: "Roboto", system-ui;
+  font-weight: 300;
+  font-style: normal;
+}
+
 .roboto-light {
   font-family: "Roboto", system-ui;
   font-weight: 300;
