@@ -1,6 +1,6 @@
 package com.tmploeg.chatapp.websockets;
 
-import com.tmploeg.chatapp.AppRoutes;
+import com.tmploeg.chatapp.routing.StompRoutes;
 import com.tmploeg.chatapp.security.AuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -19,15 +19,15 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
-    registry.enableSimpleBroker(AppRoutes.TOPIC);
-    registry.setApplicationDestinationPrefixes(AppRoutes.APP);
-    registry.setUserDestinationPrefix(AppRoutes.USER);
+    registry.enableSimpleBroker(StompRoutes.BROKERS);
+    registry.setApplicationDestinationPrefixes(StompRoutes.APP_DESTINATION);
+    //    registry.setUserDestinationPrefix(Routing.Stomp.USER_DESTINATION);
   }
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint(AppRoutes.STOMP).setAllowedOrigins("*");
-    registry.addEndpoint(AppRoutes.STOMP).setAllowedOrigins("*").withSockJS();
+    registry.addEndpoint(StompRoutes.ENDPOINT).setAllowedOrigins("*");
+    registry.addEndpoint(StompRoutes.ENDPOINT).setAllowedOrigins("*").withSockJS();
   }
 
   @Override

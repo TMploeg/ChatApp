@@ -1,6 +1,5 @@
 package com.tmploeg.chatapp.security;
 
-import com.tmploeg.chatapp.AppRoutes;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
 import com.tmploeg.chatapp.users.User;
 import com.tmploeg.chatapp.users.UserService;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(AppRoutes.AUTH)
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
   private final UserService userService;
