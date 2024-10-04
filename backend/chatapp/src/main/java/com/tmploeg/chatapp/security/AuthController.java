@@ -4,20 +4,18 @@ import com.tmploeg.chatapp.exceptions.BadRequestException;
 import com.tmploeg.chatapp.users.User;
 import com.tmploeg.chatapp.users.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@CrossOrigin("${app.cors}")
 public class AuthController {
   private final UserService userService;
   private final JWTService jwtService;
 
   @PostMapping("login")
-  public String login(@RequestBody AuthDTO authDTO) {
+  public TokenDTO login(@RequestBody AuthDTO authDTO) {
     if (authDTO.username() == null || authDTO.username().isBlank()) {
       throw new BadRequestException("username is required");
     }
@@ -31,6 +29,8 @@ public class AuthController {
             .filter(u -> userService.passwordMatches(u, authDTO.password()))
             .orElseThrow(() -> new BadRequestException("username or password is incorrect"));
 
-    return jwtService.createToken(user);
+    String token = jwtService.createToken(user);
+
+    return new TokenDTO(token, user.getUsername());
   }
 }

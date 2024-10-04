@@ -3,6 +3,7 @@ package com.tmploeg.chatapp.websockets;
 import com.tmploeg.chatapp.routing.StompRoutes;
 import com.tmploeg.chatapp.security.AuthInterceptor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -17,6 +18,9 @@ import org.springframework.web.socket.config.annotation.*;
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
   private final AuthInterceptor authInterceptor;
 
+  @Value("${app.cors}")
+  private String cors;
+
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
     registry.enableSimpleBroker(StompRoutes.BROKERS);
@@ -26,8 +30,8 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint(StompRoutes.ENDPOINT).setAllowedOrigins("*");
-    registry.addEndpoint(StompRoutes.ENDPOINT).setAllowedOrigins("*").withSockJS();
+    registry.addEndpoint(StompRoutes.ENDPOINT).setAllowedOrigins(cors);
+    registry.addEndpoint(StompRoutes.ENDPOINT).setAllowedOrigins(cors).withSockJS();
   }
 
   @Override
