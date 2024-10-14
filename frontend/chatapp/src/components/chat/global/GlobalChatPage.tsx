@@ -3,10 +3,7 @@ import { Socket } from "../../../hooks/useWebSocket";
 import Message from "../../../models/message";
 import "../Chat.css";
 import { ClipLoader } from "react-spinners";
-import { useStorage } from "../../../hooks";
-import { JWT } from "../../../models/auth";
-import { StorageLocation } from "../../../enums/StorageLocation";
-import { useNavigate } from "react-router-dom";
+import Chat from "../Chat";
 
 interface Props {
   socket: Socket;
@@ -21,24 +18,6 @@ export default function GlobalChatPage({
   clearHistory,
 }: Props) {
   const [messages, setMessages] = useState<Message[]>();
-  const [newMessage, setNewMessage] = useState<string>("");
-  const { get: getJWT, set: setJWT } = useStorage<JWT>(StorageLocation.JWT);
-  const navigate = useNavigate();
-
-  const [username, setUsername] = useState<string>();
-
-  useEffect(() => {
-    const jwt = getJWT();
-
-    if (!jwt?.username) {
-      console.error("username not found");
-      setJWT(null);
-      navigate("/");
-      return;
-    }
-
-    setUsername(jwt.username);
-  }, []);
 
   useEffect(() => {
     if (!connected) {
@@ -62,38 +41,17 @@ export default function GlobalChatPage({
   if (messages === undefined) {
     return (
       <div>
-        <ClipLoader />
+        <ClipLoader color="#3388ff" />
       </div>
     );
   }
 
   return (
-    <div className="chat-container">
-      <div className="chat-title">Global Chat</div>
-      <div className="chat-message-container">
-        {messages.map((message, index) => (
-          <div
-            className={`chat-message ${
-              message.sender === username ? "owned" : null
-            }`}
-            key={index}
-          >
-            {message.content}
-          </div>
-        ))}
-      </div>
-      <div className="new-message-input">
-        <input
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-        />
-        <button onClick={send}>send</button>
-      </div>
-    </div>
+    <Chat messages={messages} onSendMessage={send} titleText="Global Chat" />
   );
 
-  function send() {
-    socket.send("send", newMessage);
+  function send(message: string) {
+    socket.send("send", message);
   }
 
   function handleNewMessage(message: Message) {
