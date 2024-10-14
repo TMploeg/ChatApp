@@ -1,20 +1,20 @@
-.auth-form {
+.auth-page {
   display: flex;
   flex-direction: column;
   gap: 30px;
   align-items: center;
-
-  padding-top: 20px;
-  text-align: center;
+  justify-content: center;
 
   font-size: 2em;
+
+  flex: 1;
 }
 
-.auth-form input {
+.auth-page input {
   font-size: inherit;
 }
 
-.auth-form button {
+.auth-page button {
   font-size: inherit;
   padding-top: 8px;
   padding-bottom: 8px;
@@ -22,6 +22,6 @@
   padding-right: 16px;
 }
 
-.auth-form h6 {
+.auth-page h6 {
   margin: 0;
 }

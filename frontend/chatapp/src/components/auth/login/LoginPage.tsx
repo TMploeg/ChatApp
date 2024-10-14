@@ -16,7 +16,7 @@ export default function LoginPage({ onLogin }: Props) {
   const { login } = useAuth();
 
   return (
-    <div className="auth-form">
+    <div className="auth-page">
       <div>
         <h6>Username</h6>
         <input
