@@ -14,7 +14,7 @@ interface HistoryMessage {
 }
 
 function App() {
-  const socket = useWebSocket({ enableDebug: true });
+  const socket = useWebSocket({ enableDebug: false });
   const [connected, setConnected] = useState<boolean>(false);
   const { get: getToken } = useStorage<JWT>(StorageLocation.JWT);
   const [loggedIn, setLoggedIn] = useState<boolean>(!!getToken());

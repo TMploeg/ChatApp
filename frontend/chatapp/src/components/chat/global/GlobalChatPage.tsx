@@ -78,11 +78,12 @@ export default function GlobalChatPage({
         <button onClick={send}>send</button>
       </div>
       <div className="chat-message-container">
-        {messages.map((message) => (
+        {messages.map((message, index) => (
           <div
             className={`chat-message ${
               message.sender === username ? "owned" : null
             }`}
+            key={index}
           >
             {message.content}
           </div>
@@ -96,8 +97,6 @@ export default function GlobalChatPage({
   }
 
   function handleNewMessage(message: Message) {
-    console.log("NEW MESSAGE: ", message.content);
-
     setMessages((oldMessages) => {
       if (!oldMessages) {
         console.warn("can't handle new message: not initialized");
