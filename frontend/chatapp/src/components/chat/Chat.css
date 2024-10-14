@@ -1,33 +1,61 @@
+:root {
+  --message-border-radius: 30px;
+}
+
 .chat-container {
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 32px;
+
+  flex: 1;
 }
 
 .chat-title {
   font-size: 64px;
 }
 
-.new-message-input button,
-.new-message-input input {
-  font-size: 32px;
-}
-
 .chat-message-container {
   display: flex;
   flex-direction: column-reverse;
   gap: 16px;
+
+  padding-right: 12px;
+  padding-left: 12px;
+
+  overflow: scroll;
+
+  flex: 1;
+  align-self: flex-end;
+  width: 70%;
 }
 
 .chat-message {
   padding: 16px;
-  border-radius: 16px;
+
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: var(--message-border-radius);
+  border-top-left-radius: var(--message-border-radius);
+  border-top-right-radius: var(--message-border-radius);
+
   background-color: #006aff;
   font-size: 32px;
 
   align-self: flex-start;
 }
 .chat-message.owned {
+  border-bottom-left-radius: var(--message-border-radius);
+  border-bottom-right-radius: 0;
+  border-top-left-radius: var(--message-border-radius);
+  border-top-right-radius: var(--message-border-radius);
+
   align-self: flex-end;
+}
+
+.new-message-input {
+  align-self: flex-end;
+}
+.new-message-input button,
+.new-message-input input {
+  font-size: 32px;
 }

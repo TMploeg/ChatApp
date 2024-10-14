@@ -70,13 +70,6 @@ export default function GlobalChatPage({
   return (
     <div className="chat-container">
       <div className="chat-title">Global Chat</div>
-      <div className="new-message-input">
-        <input
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-        />
-        <button onClick={send}>send</button>
-      </div>
       <div className="chat-message-container">
         {messages.map((message, index) => (
           <div
@@ -88,6 +81,13 @@ export default function GlobalChatPage({
             {message.content}
           </div>
         ))}
+      </div>
+      <div className="new-message-input">
+        <input
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+        />
+        <button onClick={send}>send</button>
       </div>
     </div>
   );

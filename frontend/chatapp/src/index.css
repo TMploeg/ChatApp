@@ -4,10 +4,19 @@
   background-color: #242424;
 }
 
+body {
+  margin: 0;
+}
+
 .app {
   font-family: "Roboto", system-ui;
   font-weight: 300;
   font-style: normal;
+
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  overflow-y: hidden;
 }
 
 .roboto-light {
