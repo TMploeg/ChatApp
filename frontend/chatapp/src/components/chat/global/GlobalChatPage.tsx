@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Socket } from "../../../hooks/useWebSocket";
 import Message from "../../../models/message";
-import "../Chat.css";
 import { ClipLoader } from "react-spinners";
 import Chat from "../Chat";
 

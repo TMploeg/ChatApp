@@ -4,6 +4,7 @@ import Message from "../../models/message";
 import { useNavigate } from "react-router-dom";
 import { JWT } from "../../models/auth";
 import { StorageLocation } from "../../enums/StorageLocation";
+import "./Chat.css";
 
 interface Props {
   messages: Message[];
