@@ -3,6 +3,8 @@ import { Auth } from "../../../models";
 import "../Auth.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks";
+import { Form as FormikForm, Formik } from "formik";
+import { Form, InputGroup } from "react-bootstrap";
 
 interface Props {
   onLogin?: () => void;
@@ -17,25 +19,39 @@ export default function LoginPage({ onLogin }: Props) {
 
   return (
     <div className="auth-page">
-      <div>
-        <h6>Username</h6>
-        <input
-          value={loginData.username}
-          onChange={(e) =>
-            setLoginData((data) => ({ ...data, username: e.target.value }))
-          }
-        />
-      </div>
-      <div>
-        <h6>Password</h6>
-        <input
-          value={loginData.password}
-          onChange={(e) =>
-            setLoginData((data) => ({ ...data, password: e.target.value }))
-          }
-        />
-      </div>
-      <button onClick={submit}>Login</button>
+      <Formik
+        initialValues={{ username: "", password: "" }}
+        onSubmit={(values) => console.log(values.username)}
+      >
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleSubmit,
+          handleBlur,
+          isSubmitting,
+        }) => (
+          <div>
+            <FormikForm className="auth-form">
+              {/* <div className="auth-form"> */}
+              <Form.Control
+                name="username"
+                value={values.username}
+                onChange={handleChange}
+                placeholder="username"
+              />
+              <Form.Control
+                name="password"
+                value={values.password}
+                onChange={(e) => handleChange(e)}
+                placeholder="password"
+              />
+              {/* </div> */}
+            </FormikForm>
+          </div>
+        )}
+      </Formik>
     </div>
   );
 
