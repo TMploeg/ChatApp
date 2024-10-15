@@ -12,8 +12,13 @@
   font-size: inherit;
 }
 
+.auth-form-container {
+  width: 40%;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;
   gap: 0.5em;
+  align-items: center;
 }
