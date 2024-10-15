@@ -1,39 +1,45 @@
+import { Formik } from "formik";
 import { useState } from "react";
+import { RegisterSchema } from "../AuthSchemas";
+import { Form as FormikForm } from "formik";
+import { Button, Form, InputGroup } from "react-bootstrap";
+import { BsEyeSlashFill, BsEyeFill } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks";
-import { Form as FormikForm, Formik } from "formik";
-import { Button, Form, InputGroup } from "react-bootstrap";
-import { LoginSchema } from "../AuthSchemas";
-import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
-import "../Auth.css";
 
 interface Props {
-  onLogin?: () => void;
+  onRegister?: () => void;
 }
-export default function LoginPage({ onLogin }: Props) {
+export default function RegisterPage({ onRegister }: Props) {
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+  const [passwordConfirmationVisible, setPasswordConfirmationVisible] =
+    useState<boolean>(false);
 
-  const { login } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   return (
     <div className="auth-page">
       <div className="auth-form-container">
-        <div className="auth-form-title">Login</div>
+        <div className="auth-form-title">Register</div>
         <Formik
-          initialValues={{ username: "", password: "" }}
+          initialValues={{
+            username: "",
+            password: "",
+            passwordConfirmation: "",
+          }}
           onSubmit={(values, { setSubmitting }) => {
-            login(values)
+            register(values)
               .then(() => {
-                onLogin?.();
+                onRegister?.();
                 navigate("/");
               })
               .catch(() => {
-                alert("login failed");
+                alert("register failed");
                 setSubmitting(false);
               });
           }}
-          validationSchema={LoginSchema}
+          validationSchema={RegisterSchema}
         >
           {({
             values,
@@ -68,6 +74,27 @@ export default function LoginPage({ onLogin }: Props) {
                       {errors.password}
                     </Form.Control.Feedback>
                   </InputGroup>
+                  <InputGroup hasValidation>
+                    <Form.Control
+                      {...getCommonProps("passwordConfirmation")}
+                      type={passwordConfirmationVisible ? "text" : "password"}
+                    />
+                    <Button
+                      onClick={() =>
+                        setPasswordConfirmationVisible((visible) => !visible)
+                      }
+                      size="lg"
+                    >
+                      {passwordConfirmationVisible ? (
+                        <BsEyeSlashFill />
+                      ) : (
+                        <BsEyeFill />
+                      )}
+                    </Button>
+                    <Form.Control.Feedback type="invalid">
+                      {errors.passwordConfirmation}
+                    </Form.Control.Feedback>
+                  </InputGroup>
                   <Button type="submit" disabled={isSubmitting} size="lg">
                     Login
                   </Button>
@@ -91,7 +118,7 @@ export default function LoginPage({ onLogin }: Props) {
             }
           }}
         </Formik>
-        <Link to="/register">go to register</Link>
+        <Link to="/login">go to login</Link>
       </div>
     </div>
   );

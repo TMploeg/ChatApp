@@ -6,6 +6,7 @@ import LoginPage from "./components/auth/login/LoginPage";
 import GlobalChatPage from "./components/chat/global/GlobalChatPage";
 import { JWT } from "./models/auth";
 import Message from "./models/message";
+import RegisterPage from "./components/auth/register/RegisterPage";
 
 const CHAT_HISTORY_ROUTE = "/user/queue/history";
 
@@ -72,6 +73,10 @@ function App() {
             <Route
               path="/login"
               element={<LoginPage onLogin={() => setLoggedIn(true)} />}
+            />
+            <Route
+              path="/register"
+              element={<RegisterPage onRegister={() => setLoggedIn(true)} />}
             />
           </>
         )}

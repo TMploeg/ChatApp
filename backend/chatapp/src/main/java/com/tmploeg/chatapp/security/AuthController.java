@@ -33,4 +33,22 @@ public class AuthController {
 
     return new TokenDTO(token, user.getUsername());
   }
+
+  @PostMapping("register")
+  public TokenDTO register(@RequestBody AuthDTO authDTO) {
+    if (authDTO.username() == null || authDTO.username().isBlank()) {
+      throw new BadRequestException("username is required");
+    }
+    if (authDTO.password() == null || authDTO.password().isBlank()) {
+      throw new BadRequestException("password is required");
+    }
+    if (userService.exists(authDTO.username())
+        || !userService.isValidPassword(authDTO.password())) {
+      throw new BadRequestException("username or password is invalid");
+    }
+
+    User newUser = userService.create(authDTO.username(), authDTO.password());
+
+    return new TokenDTO(jwtService.createToken(newUser), newUser.getUsername());
+  }
 }
