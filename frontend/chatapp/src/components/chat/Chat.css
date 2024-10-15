@@ -52,10 +52,10 @@
   align-self: flex-end;
 }
 
-.new-message-input {
+.new-message-input-container {
   align-self: flex-end;
+  width: 35%;
 }
-.new-message-input button,
-.new-message-input input {
+.new-message-input > input {
   font-size: 32px;
 }

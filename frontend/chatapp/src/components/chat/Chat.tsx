@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { JWT } from "../../models/auth";
 import { StorageLocation } from "../../enums/StorageLocation";
 import "./Chat.css";
+import { Button, Form, InputGroup } from "react-bootstrap";
+import { BsSendFill } from "react-icons/bs";
 
 interface Props {
   messages: Message[];
@@ -46,12 +48,16 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
           </div>
         ))}
       </div>
-      <div className="new-message-input">
-        <input
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-        />
-        <button onClick={handleSendClicked}>send</button>
+      <div className="new-message-input-container">
+        <InputGroup className="new-message-input">
+          <Form.Control
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+          />
+          <Button size="lg" onClick={handleSendClicked}>
+            <BsSendFill />
+          </Button>
+        </InputGroup>
       </div>
     </div>
   );
