@@ -40,47 +40,52 @@ export default function LoginPage({ onLogin }: Props) {
             handleSubmit,
             handleBlur,
             isSubmitting,
-          }) => (
-            <div>
-              <FormikForm onSubmit={handleSubmit} className="auth-form">
-                <InputGroup>
-                  <Form.Control
-                    name="username"
-                    value={values.username}
-                    onChange={handleChange}
-                    placeholder="username"
-                    isInvalid={touched.username && !!errors.username}
-                    onBlur={handleBlur}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {errors.username}
-                  </Form.Control.Feedback>
-                </InputGroup>
-                <InputGroup>
-                  <Form.Control
-                    name="password"
-                    type={passwordVisible ? "text" : "password"}
-                    value={values.password}
-                    onChange={(e) => handleChange(e)}
-                    placeholder="password"
-                    isInvalid={touched.password && !!errors.password}
-                    onBlur={handleBlur}
-                  />
-                  <Button
-                    onClick={() => setPasswordVisible((visible) => !visible)}
-                  >
-                    {passwordVisible ? <BsEyeSlashFill /> : <BsEyeFill />}
+          }) => {
+            return (
+              <div>
+                <FormikForm onSubmit={handleSubmit} className="auth-form">
+                  <InputGroup>
+                    <Form.Control {...getCommonProps("username")} />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.username}
+                    </Form.Control.Feedback>
+                  </InputGroup>
+                  <InputGroup>
+                    <Form.Control
+                      {...getCommonProps("password")}
+                      type={passwordVisible ? "text" : "password"}
+                    />
+                    <Button
+                      onClick={() => setPasswordVisible((visible) => !visible)}
+                    >
+                      {passwordVisible ? <BsEyeSlashFill /> : <BsEyeFill />}
+                    </Button>
+                    <Form.Control.Feedback type="invalid">
+                      {errors.password}
+                    </Form.Control.Feedback>
+                  </InputGroup>
+                  <Button type="submit" disabled={isSubmitting} size="lg">
+                    Login
                   </Button>
-                  <Form.Control.Feedback type="invalid">
-                    {errors.password}
-                  </Form.Control.Feedback>
-                </InputGroup>
-                <Button type="submit" disabled={isSubmitting} size="lg">
-                  Login
-                </Button>
-              </FormikForm>
-            </div>
-          )}
+                </FormikForm>
+              </div>
+            );
+
+            function getCommonProps(
+              name: keyof typeof values,
+              placeholder?: string
+            ) {
+              return {
+                name,
+                value: values[name],
+                onChange: handleChange,
+                placeholder: placeholder ?? name,
+                isInvalid: touched[name] && !!errors[name],
+                isValid: touched[name] && !errors[name],
+                onBlur: handleBlur,
+              };
+            }
+          }}
         </Formik>
       </div>
     </div>
