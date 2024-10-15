@@ -1,0 +1,30 @@
+.app-container {
+  font-family: "Roboto", system-ui;
+  font-weight: 300;
+  font-style: normal;
+
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden;
+
+  background-color: var(--bg);
+  color: white;
+}
+
+.app {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+}
+
+.app-menu {
+  width: 450px;
+}
+.app-content {
+  display: flex;
+  flex-direction: column;
+
+  flex: 1;
+}

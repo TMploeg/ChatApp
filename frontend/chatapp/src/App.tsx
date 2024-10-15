@@ -7,6 +7,10 @@ import GlobalChatPage from "./components/chat/global/GlobalChatPage";
 import { JWT } from "./models/auth";
 import Message from "./models/message";
 import RegisterPage from "./components/auth/register/RegisterPage";
+import HomePage from "./components/home/HomePage";
+import Toolbar from "./components/toolbar/Toolbar";
+import "./App.css";
+import NavMenu from "./components/nav-menu/NavMenu";
 
 const CHAT_HISTORY_ROUTE = "/user/queue/history";
 
@@ -48,15 +52,26 @@ function App() {
     }
   }, [loggedIn]);
 
-  return <div className="app">{getRoutes()}</div>;
+  return (
+    <div className="app-container">
+      <Toolbar title="ChatApp" />
+      <div className="app">
+        <div className="app-menu">
+          <NavMenu />
+        </div>
+        <div className="app-content">{getRoutes()}</div>
+      </div>
+    </div>
+  );
 
   function getRoutes() {
     return (
       <Routes>
         {loggedIn ? (
           <>
+            <Route path="/" element={<HomePage />} />
             <Route
-              path="/"
+              path="/chat/global"
               element={
                 <GlobalChatPage
                   socket={socket}

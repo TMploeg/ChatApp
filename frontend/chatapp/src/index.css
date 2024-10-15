@@ -1,19 +1,16 @@
-body {
-  margin: 0;
+:root {
+  /* --bg: #070f2b; */
+  /* --primary: #1b1a55; */
+  /* --secondary: #535c91; */
+
+  --bg: #242424;
+  --bg-alter: #6b8a7a;
+  --primary: #254336;
+  --secondary: #b7b597;
 }
 
-.app {
-  font-family: "Roboto", system-ui;
-  font-weight: 300;
-  font-style: normal;
-
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  overflow-y: hidden;
-
-  background-color: #242424;
-  color: white;
+body {
+  margin: 0;
 }
 
 .roboto-light {

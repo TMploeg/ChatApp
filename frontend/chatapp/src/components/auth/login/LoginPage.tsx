@@ -59,6 +59,7 @@ export default function LoginPage({ onLogin }: Props) {
                       type={passwordVisible ? "text" : "password"}
                     />
                     <Button
+                      variant="secondary"
                       onClick={() => setPasswordVisible((visible) => !visible)}
                       size="lg"
                     >
@@ -68,7 +69,13 @@ export default function LoginPage({ onLogin }: Props) {
                       {errors.password}
                     </Form.Control.Feedback>
                   </InputGroup>
-                  <Button type="submit" disabled={isSubmitting} size="lg">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={isSubmitting}
+                    size="lg"
+                    onClick={() => console.log("Login Clicked!")}
+                  >
                     Login
                   </Button>
                 </FormikForm>

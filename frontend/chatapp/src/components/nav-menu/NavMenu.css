@@ -1,0 +1,26 @@
+.nav-menu {
+  background-color: var(--bg-alter);
+  height: 100%;
+
+  padding-top: 10px;
+}
+
+.nav {
+  flex-direction: column;
+}
+.nav > * {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8px;
+  font-size: 26px;
+
+  padding-left: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  transition: background-color 1s;
+}
+.nav > *:hover {
+  background-color: blue;
+}

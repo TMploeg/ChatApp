@@ -1,0 +1,21 @@
+.toolbar {
+  height: 90px;
+  background-color: var(--primary);
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  padding-left: 30px;
+  padding-right: 30px;
+}
+.toolbar-start {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+}
+
+.toolbar-title {
+  font-size: 2em;
+}
