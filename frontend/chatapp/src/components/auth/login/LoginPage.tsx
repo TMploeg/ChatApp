@@ -6,17 +6,13 @@ import { useAuth } from "../../../hooks";
 import { Form as FormikForm, Formik } from "formik";
 import { Button, Form, InputGroup } from "react-bootstrap";
 import { LoginSchema } from "../AuthSchemas";
+import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
 
 interface Props {
   onLogin?: () => void;
 }
 export default function LoginPage({ onLogin }: Props) {
-  const [loginData, setLoginData] = useState<Auth>({
-    username: "",
-    password: "",
-  });
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
 
   return (
     <div className="auth-page">
@@ -53,12 +49,18 @@ export default function LoginPage({ onLogin }: Props) {
                 <InputGroup>
                   <Form.Control
                     name="password"
+                    type={passwordVisible ? "text" : "password"}
                     value={values.password}
                     onChange={(e) => handleChange(e)}
                     placeholder="password"
                     isInvalid={touched.password && !!errors.password}
                     onBlur={handleBlur}
                   />
+                  <Button
+                    onClick={() => setPasswordVisible((visible) => !visible)}
+                  >
+                    {passwordVisible ? <BsEyeSlashFill /> : <BsEyeFill />}
+                  </Button>
                   <Form.Control.Feedback type="invalid">
                     {errors.password}
                   </Form.Control.Feedback>
@@ -73,13 +75,4 @@ export default function LoginPage({ onLogin }: Props) {
       </div>
     </div>
   );
-
-  function submit(): void {
-    login(loginData)
-      .then(() => {
-        onLogin?.();
-        navigate("/");
-      })
-      .catch(() => alert("login failed"));
-  }
 }
