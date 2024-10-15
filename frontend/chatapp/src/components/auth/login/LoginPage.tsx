@@ -14,12 +14,22 @@ interface Props {
 export default function LoginPage({ onLogin }: Props) {
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
 
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <div className="auth-page">
       <div className="auth-form-container">
         <Formik
           initialValues={{ username: "", password: "" }}
-          onSubmit={(values) => console.log(values.username)}
+          onSubmit={(values) => {
+            login(values)
+              .then(() => {
+                onLogin?.();
+                navigate("/");
+              })
+              .catch(() => alert("login failed"));
+          }}
           validationSchema={LoginSchema}
         >
           {({
