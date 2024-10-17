@@ -1,13 +1,4 @@
-:root {
-  /* --bg: #070f2b; */
-  /* --primary: #1b1a55; */
-  /* --secondary: #535c91; */
-
-  --bg: #242424;
-  --bg-alter: #6b8a7a;
-  --primary: #254336;
-  --secondary: #b7b597;
-}
+@import "../scss/custom.scss";
 
 body {
   margin: 0;

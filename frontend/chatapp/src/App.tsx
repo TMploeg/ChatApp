@@ -9,7 +9,7 @@ import Message from "./models/message";
 import RegisterPage from "./components/auth/register/RegisterPage";
 import HomePage from "./components/home/HomePage";
 import Toolbar from "./components/toolbar/Toolbar";
-import "./App.css";
+import "./App.scss";
 import NavMenu from "./components/nav-menu/NavMenu";
 
 const CHAT_HISTORY_ROUTE = "/user/queue/history";

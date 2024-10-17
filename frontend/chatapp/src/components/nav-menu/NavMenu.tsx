@@ -1,5 +1,5 @@
 import { Nav } from "react-bootstrap";
-import "./NavMenu.css";
+import "./NavMenu.scss";
 import { BsGlobe, BsHouseFill } from "react-icons/bs";
 
 const NAV_ICON_SIZE = 45;

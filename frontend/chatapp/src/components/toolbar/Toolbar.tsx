@@ -1,4 +1,4 @@
-import "./Toolbar.css";
+import "./Toolbar.scss";
 
 interface Props {
   title?: string;

@@ -1,6 +1,8 @@
+@import "../../../scss/custom.scss";
+
 .toolbar {
   height: 90px;
-  background-color: var(--primary);
+  background-color: $primary;
 
   display: flex;
   flex-direction: row;

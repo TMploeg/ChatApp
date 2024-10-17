@@ -1,5 +1,7 @@
+@import "../../../scss/custom.scss";
+
 .nav-menu {
-  background-color: var(--bg-alter);
+  background-color: $secondary;
   height: 100%;
 
   padding-top: 10px;
