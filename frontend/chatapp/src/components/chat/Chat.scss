@@ -25,6 +25,8 @@ $message-border-radius: 30px;
   gap: 16px;
 
   overflow-y: hidden;
+
+  flex: 1;
 }
 
 .chat-messages {
@@ -34,8 +36,6 @@ $message-border-radius: 30px;
   overflow-y: scroll;
 
   flex: 1;
-  // align-self: flex-end;
-  // width: 70%;
 
   padding-left: 24px;
   padding-right: 24px;
@@ -78,7 +78,7 @@ $message-border-radius: 30px;
   padding-left: 12px;
   padding-right: 12px;
   padding-top: 8px;
-  padding-bottom: 8px;
+  padding-bottom: 16px;
 }
 .new-message-input > input {
   font-size: 32px;
