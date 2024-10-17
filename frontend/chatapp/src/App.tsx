@@ -11,6 +11,7 @@ import HomePage from "./components/home/HomePage";
 import Toolbar from "./components/toolbar/Toolbar";
 import "./App.scss";
 import NavMenu from "./components/nav-menu/NavMenu";
+import AppRoute from "./enums/AppRoute";
 
 const CHAT_HISTORY_ROUTE = "/user/queue/history";
 
@@ -71,9 +72,9 @@ function App() {
       <Routes>
         {loggedIn ? (
           <>
-            <Route path="/" element={<HomePage />} />
+            <Route path={AppRoute.HOME} element={<HomePage />} />
             <Route
-              path="/chat/global"
+              path={AppRoute.GLOBAL_CHAT}
               element={
                 <GlobalChatPage
                   socket={socket}
@@ -86,18 +87,21 @@ function App() {
           </>
         ) : (
           <>
-            <Route path="/" element={<Navigate to="/login" />} />
             <Route
-              path="/login"
+              path={AppRoute.HOME}
+              element={<Navigate to={AppRoute.LOGIN} />}
+            />
+            <Route
+              path={AppRoute.LOGIN}
               element={<LoginPage onLogin={() => setLoggedIn(true)} />}
             />
             <Route
-              path="/register"
+              path={AppRoute.REGISTER}
               element={<RegisterPage onRegister={() => setLoggedIn(true)} />}
             />
           </>
         )}
-        <Route path="/*" element={<Navigate to="/" />} />
+        <Route path={AppRoute.ANY} element={<Navigate to={AppRoute.HOME} />} />
       </Routes>
     );
   }

@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../hooks";
+import { Link } from "react-router-dom";
+import { useAppNavigate, useAuth } from "../../../hooks";
 import { Form as FormikForm, Formik } from "formik";
 import { Button, Form, InputGroup } from "react-bootstrap";
 import { LoginSchema } from "../AuthSchemas";
 import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
 import "../Auth.css";
+import AppRoute from "../../../enums/AppRoute";
 
 interface Props {
   onLogin?: () => void;
@@ -14,7 +15,7 @@ export default function LoginPage({ onLogin }: Props) {
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
 
   const { login } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
     <div className="auth-page">
@@ -26,7 +27,7 @@ export default function LoginPage({ onLogin }: Props) {
             login(values)
               .then(() => {
                 onLogin?.();
-                navigate("/");
+                navigate(AppRoute.HOME);
               })
               .catch(() => {
                 alert("login failed");

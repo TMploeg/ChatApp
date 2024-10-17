@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { useStorage } from "../../hooks";
+import { useAppNavigate, useStorage } from "../../hooks";
 import Message from "../../models/message";
-import { useNavigate } from "react-router-dom";
 import { JWT } from "../../models/auth";
 import { StorageLocation } from "../../enums/StorageLocation";
 import "./Chat.css";
 import { Button, Form, InputGroup } from "react-bootstrap";
 import { BsSendFill } from "react-icons/bs";
+import AppRoute from "../../enums/AppRoute";
 
 interface Props {
   messages: Message[];
@@ -18,7 +18,7 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
   const [newMessage, setNewMessage] = useState<string>("");
 
   const { get: getJWT, set: setJWT } = useStorage<JWT>(StorageLocation.JWT);
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   useEffect(() => {
     const jwt = getJWT();
@@ -26,7 +26,7 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
     if (!jwt?.username) {
       console.error("username not found");
       setJWT(null);
-      navigate("/");
+      navigate(AppRoute.HOME);
       return;
     }
 

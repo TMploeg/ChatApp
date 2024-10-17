@@ -4,8 +4,9 @@ import { RegisterSchema } from "../AuthSchemas";
 import { Form as FormikForm } from "formik";
 import { Button, Form, InputGroup } from "react-bootstrap";
 import { BsEyeSlashFill, BsEyeFill } from "react-icons/bs";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../hooks";
+import { Link } from "react-router-dom";
+import { useAppNavigate, useAuth } from "../../../hooks";
+import AppRoute from "../../../enums/AppRoute";
 
 interface Props {
   onRegister?: () => void;
@@ -16,7 +17,7 @@ export default function RegisterPage({ onRegister }: Props) {
     useState<boolean>(false);
 
   const { register } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   return (
     <div className="auth-page">
@@ -32,7 +33,7 @@ export default function RegisterPage({ onRegister }: Props) {
             register(values)
               .then(() => {
                 onRegister?.();
-                navigate("/");
+                navigate(AppRoute.HOME);
               })
               .catch(() => {
                 alert("register failed");
