@@ -1,8 +1,8 @@
 import { Nav } from "react-bootstrap";
-import "./NavMenu.scss";
 import { BsGlobe, BsHouseFill } from "react-icons/bs";
 import { useAppNavigate } from "../../hooks";
 import AppRoute from "../../enums/AppRoute";
+import "./NavMenu.scss";
 
 const NAV_ICON_SIZE = 45;
 export default function NavMenu() {

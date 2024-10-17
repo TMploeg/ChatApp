@@ -3,7 +3,7 @@ import { useAppNavigate, useStorage } from "../../hooks";
 import Message from "../../models/message";
 import { JWT } from "../../models/auth";
 import { StorageLocation } from "../../enums/StorageLocation";
-import "./Chat.css";
+import "./Chat.scss";
 import { Button, Form, InputGroup } from "react-bootstrap";
 import { BsSendFill } from "react-icons/bs";
 import AppRoute from "../../enums/AppRoute";

@@ -5,8 +5,8 @@ import { Form as FormikForm, Formik } from "formik";
 import { Button, Form, InputGroup } from "react-bootstrap";
 import { LoginSchema } from "../AuthSchemas";
 import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
-import "../Auth.css";
 import AppRoute from "../../../enums/AppRoute";
+import "../Auth.scss";
 
 interface Props {
   onLogin?: () => void;

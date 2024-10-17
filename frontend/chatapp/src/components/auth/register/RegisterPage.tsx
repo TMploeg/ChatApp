@@ -7,6 +7,7 @@ import { BsEyeSlashFill, BsEyeFill } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import { useAppNavigate, useAuth } from "../../../hooks";
 import AppRoute from "../../../enums/AppRoute";
+import "../Auth.scss";
 
 interface Props {
   onRegister?: () => void;
