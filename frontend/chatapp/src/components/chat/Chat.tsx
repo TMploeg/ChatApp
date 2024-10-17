@@ -54,6 +54,7 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
             <Form.Control
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
+              onKeyUp={(e) => handleInputKeyUp(e.key)}
             />
             <Button size="lg" onClick={handleSendClicked}>
               <BsSendFill />
@@ -72,5 +73,15 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
     onSendMessage(newMessage);
 
     setNewMessage("");
+  }
+
+  function handleInputKeyUp(key: string) {
+    switch (key) {
+      case "Enter":
+        handleSendClicked();
+        break;
+      default:
+        break;
+    }
   }
 }
