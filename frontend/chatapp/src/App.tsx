@@ -56,9 +56,11 @@ function App() {
     <div className="app-container">
       <Toolbar title="ChatApp" />
       <div className="app">
-        <div className="app-menu">
-          <NavMenu />
-        </div>
+        {loggedIn && (
+          <div className="app-menu">
+            <NavMenu />
+          </div>
+        )}
         <div className="app-content">{getRoutes()}</div>
       </div>
     </div>
