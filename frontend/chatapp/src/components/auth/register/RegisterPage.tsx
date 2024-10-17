@@ -110,11 +110,32 @@ export default function RegisterPage({ onRegister }: Props) {
                 name,
                 value: values[name],
                 onChange: handleChange,
-                placeholder: placeholder ?? name,
+                placeholder: placeholder ?? splitName(name),
                 isInvalid: touched[name] && !!errors[name],
                 isValid: touched[name] && !errors[name],
                 onBlur: handleBlur,
               };
+            }
+
+            function splitName(name: string): string {
+              if (name.length === 0) {
+                return name;
+              }
+
+              let result: string = "";
+
+              for (let i = 0; i < name.length; i++) {
+                const current = name[i];
+
+                result +=
+                  i === 0
+                    ? current.toUpperCase()
+                    : current === current.toUpperCase()
+                    ? " " + current
+                    : current;
+              }
+
+              return result;
             }
           }}
         </Formik>
