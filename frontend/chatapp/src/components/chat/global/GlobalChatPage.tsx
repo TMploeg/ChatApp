@@ -4,6 +4,8 @@ import Message from "../../../models/message";
 import { ClipLoader } from "react-spinners";
 import Chat from "../Chat";
 
+const SEND_MESSAGE_DESTINATION = "/send";
+
 interface Props {
   socket: Socket;
   connected: boolean;
@@ -50,7 +52,7 @@ export default function GlobalChatPage({
   );
 
   function send(message: string) {
-    socket.send("send", message);
+    socket.send(SEND_MESSAGE_DESTINATION, message);
   }
 
   function handleNewMessage(message: Message) {
