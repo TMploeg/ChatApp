@@ -37,27 +37,29 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
     <div className="chat-container">
       {titleText && <div className="chat-title">{titleText}</div>}
       <div className="chat-message-container">
-        {messages.map((message, index) => (
-          <div
-            className={`chat-message ${
-              message.sender === username ? "owned" : null
-            }`}
-            key={index}
-          >
-            {message.content}
-          </div>
-        ))}
-      </div>
-      <div className="new-message-input-container">
-        <InputGroup className="new-message-input">
-          <Form.Control
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-          />
-          <Button size="lg" onClick={handleSendClicked}>
-            <BsSendFill />
-          </Button>
-        </InputGroup>
+        <div className="chat-messages">
+          {messages.map((message, index) => (
+            <div
+              className={`chat-message ${
+                message.sender === username ? "owned" : null
+              }`}
+              key={index}
+            >
+              {message.content}
+            </div>
+          ))}
+        </div>
+        <div className="new-message-input-container">
+          <InputGroup className="new-message-input">
+            <Form.Control
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+            />
+            <Button size="lg" onClick={handleSendClicked}>
+              <BsSendFill />
+            </Button>
+          </InputGroup>
+        </div>
       </div>
     </div>
   );
