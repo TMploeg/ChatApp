@@ -1,5 +1,9 @@
 @import "../../../scss/custom.scss";
 
+$nav-default-opacity: 0;
+$nav-hover-opacity: 0.15;
+$nav-active-opacity: 0.25;
+
 .nav-menu {
   background-color: $secondary;
   height: 100%;
@@ -18,11 +22,16 @@
   font-size: 26px;
 
   padding-left: 20px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 16px;
+  padding-bottom: 16px;
 
-  transition: background-color 1s;
+  background-color: rgba(0, 0, 0, $nav-default-opacity);
+  transition: background-color 0.3s;
+  cursor: pointer;
 }
 .nav > *:hover {
-  background-color: blue;
+  background-color: rgba(0, 0, 0, $nav-hover-opacity);
+}
+.nav > *:active {
+  background-color: rgba(0, 0, 0, $nav-active-opacity);
 }
