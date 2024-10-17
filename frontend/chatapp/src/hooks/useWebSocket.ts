@@ -15,20 +15,20 @@ const APP_DESTINATION = "/app";
 
 export interface WebSocketConfig {
   enableDebug?: boolean;
-  enableHeartbeat?: boolean;
-  onConnect: () => void;
-  onDisconnect: () => void;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
 }
-export default function useWebSocket(config?: WebSocketConfig): Socket {
-  const [stompClient] = useState<Client>(getClient(config));
-
+export default function useWebSocket(): Socket {
   const { get: getJWT } = useStorage<JWT>(StorageLocation.JWT);
+  const [stompClient] = useState<Client>(getClient());
 
-  function connect() {
+  function connect(config?: WebSocketConfig) {
     if (stompClient.state !== ActivationState.INACTIVE) {
       console.warn("cannot connect: already connected");
       return;
     }
+
+    configureClient(config);
 
     stompClient.activate();
   }
@@ -73,11 +73,15 @@ export default function useWebSocket(config?: WebSocketConfig): Socket {
     subscribe,
   };
 
-  function getClient(config?: WebSocketConfig): Client {
+  function getClient(): Client {
     const client = Stomp.client(import.meta.env.VITE_WEBSOCKET_URL);
 
+    return client;
+  }
+
+  function configureClient(config?: WebSocketConfig) {
     if (!config?.enableDebug) {
-      client.debug = () => {};
+      stompClient.debug = () => {};
     }
 
     const jwt = getJWT();
@@ -88,7 +92,7 @@ export default function useWebSocket(config?: WebSocketConfig): Socket {
     const headers: any = {};
     headers[AUTH_HEADER_NAME] = jwt.token;
 
-    client.configure({
+    stompClient.configure({
       connectHeaders: headers,
       heartbeatOutgoing: HEARTBEAT_INTERVAL_DELAY,
       onConnect: () => {
@@ -98,13 +102,11 @@ export default function useWebSocket(config?: WebSocketConfig): Socket {
         config?.onDisconnect?.();
       },
     });
-
-    return client;
   }
 }
 
 export interface Socket {
-  connect: () => void;
+  connect: (config?: WebSocketConfig) => void;
   disconnect: () => void;
   send: (destination: string, content: string) => void;
   subscribe: <T>(

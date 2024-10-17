@@ -14,43 +14,36 @@ import AppRoute from "./enums/AppRoute";
 import "./App.scss";
 
 const CHAT_HISTORY_ROUTE = "/user/queue/history";
+const DEBUG_ENABLED: boolean = false;
 
 interface HistoryMessage {
   data?: Message[];
 }
 
 function App() {
-  const socket = useWebSocket({ enableDebug: false });
-  const [connected, setConnected] = useState<boolean>(false);
   const { get: getToken } = useStorage<JWT>(StorageLocation.JWT);
+
+  const [connected, setConnected] = useState<boolean>(false);
   const [loggedIn, setLoggedIn] = useState<boolean>(!!getToken());
   const [history, setHistory] = useState<Message[]>();
 
-  useEffect(() => {
-    socket.onConnect(() => {
-      socket.subscribe<HistoryMessage>(CHAT_HISTORY_ROUTE, (response) => {
-        // when subscribing to history, server will send an empty message to signal successful subscription
-        if (!response.data) {
-          setConnected(true);
-          return;
-        }
-
-        setHistory(response.data);
-      });
-    });
-    socket.onDisconnect(() => setConnected(false));
-  }, []);
+  const socket = useWebSocket();
 
   useEffect(() => {
     if (loggedIn === connected) {
       return;
     }
 
-    if (loggedIn) {
-      socket.connect();
-    } else {
+    if (!loggedIn) {
       socket.disconnect();
+      return;
     }
+
+    socket.connect({
+      enableDebug: DEBUG_ENABLED,
+      onConnect: handleConnect,
+      onDisconnect: handleDisconnect,
+    });
   }, [loggedIn]);
 
   return (
@@ -104,6 +97,22 @@ function App() {
         <Route path={AppRoute.ANY} element={<Navigate to={AppRoute.HOME} />} />
       </Routes>
     );
+  }
+
+  function handleConnect() {
+    socket.subscribe<HistoryMessage>(CHAT_HISTORY_ROUTE, (response) => {
+      // when subscribing to history, server will send an empty message to signal successful subscription
+      if (!response.data) {
+        setConnected(true);
+        return;
+      }
+
+      setHistory(response.data);
+    });
+  }
+
+  function handleDisconnect() {
+    setConnected(false);
   }
 }
 
