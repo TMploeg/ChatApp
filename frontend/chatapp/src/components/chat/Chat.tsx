@@ -7,6 +7,7 @@ import "./Chat.scss";
 import { Button, Form, InputGroup } from "react-bootstrap";
 import { BsSendFill } from "react-icons/bs";
 import AppRoute from "../../enums/AppRoute";
+import ChatMessage from "./ChatMessage";
 
 interface Props {
   messages: Message[];
@@ -39,14 +40,11 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
       <div className="chat-message-container">
         <div className="chat-messages">
           {messages.map((message, index) => (
-            <div
-              className={`chat-message ${
-                message.sender === username ? "owned" : null
-              }`}
+            <ChatMessage
+              message={message}
+              isOwned={message.sender === username}
               key={index}
-            >
-              {message.content}
-            </div>
+            />
           ))}
         </div>
         <div className="new-message-input-container">
