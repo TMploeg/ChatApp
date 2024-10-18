@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { useAppNavigate, useStorage } from "../../hooks";
 import Message from "../../models/message";
 import { JWT } from "../../models/auth";
@@ -8,6 +8,7 @@ import { Button, Form, InputGroup } from "react-bootstrap";
 import { BsSendFill } from "react-icons/bs";
 import AppRoute from "../../enums/AppRoute";
 import ChatMessage from "./ChatMessage";
+import ChatDateDivider from "./ChatDateDivider";
 
 interface Props {
   messages: Message[];
@@ -34,19 +35,12 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
     setUsername(jwt.username);
   }, []);
 
+  const c = { key: "x" };
   return (
     <div className="chat-container">
       {titleText && <div className="chat-title">{titleText}</div>}
       <div className="chat-message-container">
-        <div className="chat-messages">
-          {messages.map((message, index) => (
-            <ChatMessage
-              message={message}
-              isOwned={message.sender === username}
-              key={index}
-            />
-          ))}
-        </div>
+        <div className="chat-messages">{getMessageViews()}</div>
         <div className="new-message-input-container">
           <InputGroup className="new-message-input">
             <Form.Control
@@ -81,5 +75,49 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
       default:
         break;
     }
+  }
+
+  function getMessageViews(): ReactElement {
+    const views: ReactElement[] = [];
+
+    let index = 0;
+    for (let message of messages) {
+      views.push(
+        <ChatMessage
+          message={message}
+          isOwned={message.sender === username}
+          key={index}
+        />
+      );
+
+      const isLastMessageForDate =
+        index + 1 === messages.length ||
+        message.sendAt.date !== messages[index + 1].sendAt.date;
+
+      if (isLastMessageForDate) {
+        views.push(getDividerForDate(new Date(message.sendAt.date)));
+      }
+
+      index++;
+    }
+
+    return <>{views}</>;
+  }
+
+  function getDividerForDate(date: Date) {
+    return (
+      <ChatDateDivider
+        key={date.toLocaleDateString()}
+        date={
+          date.toLocaleString("default", {
+            month: "long",
+          }) +
+          " " +
+          date.getDate() +
+          ", " +
+          date.getFullYear()
+        }
+      />
+    );
   }
 }
