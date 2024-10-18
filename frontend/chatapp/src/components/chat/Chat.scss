@@ -47,8 +47,8 @@ $message-border-radius: 20px;
 .chat-message {
   padding-left: 16px;
   padding-right: 16px;
-  padding-top: 5px;
-  padding-bottom: 3px;
+  padding-top: 12px;
+  padding-bottom: 8px;
 
   border-bottom-left-radius: 0;
   border-bottom-right-radius: $message-border-radius;
@@ -67,14 +67,23 @@ $message-border-radius: 20px;
   flex-direction: column;
 
   .chat-message-username {
-    font-size: 0.9em;
+    line-height: 0.8em;
+    font-size: 0.8em;
     opacity: 0.5;
+  }
+
+  .chat-message-content {
+    line-height: 1em;
+    margin-top: 6px;
+    margin-bottom: 12px;
   }
 
   .chat-message-send-time {
     font-size: 0.6em;
-    opacity: 0.5;
+    line-height: 0.6em;
     align-self: flex-end;
+
+    opacity: 0.5;
   }
 }
 .chat-message.owned {
