@@ -11,6 +11,7 @@ export default function ChatMessage({ message, isOwned }: Props) {
         <div className="chat-message-username">{message.sender}</div>
       )}
       <div className="chat-message-content">{message.content}</div>
+      <div className="chat-message-send-time">{message.sendAt.time}</div>
     </div>
   );
 }

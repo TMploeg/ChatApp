@@ -61,6 +61,21 @@ $message-border-radius: 20px;
   align-self: flex-start;
 
   box-shadow: -1px 1px 6px black;
+
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+
+  .chat-message-username {
+    font-size: 0.9em;
+    opacity: 0.5;
+  }
+
+  .chat-message-send-time {
+    font-size: 0.6em;
+    opacity: 0.5;
+    align-self: flex-end;
+  }
 }
 .chat-message.owned {
   border-bottom-left-radius: $message-border-radius;
@@ -72,11 +87,10 @@ $message-border-radius: 20px;
   background-color: $primary;
 
   align-self: flex-end;
-}
 
-.chat-message-username {
-  font-size: 0.9em;
-  opacity: 0.5;
+  .chat-message-send-time {
+    opacity: 0.7;
+  }
 }
 
 .new-message-input-container {
