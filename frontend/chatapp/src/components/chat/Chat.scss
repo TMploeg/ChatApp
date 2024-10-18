@@ -1,6 +1,6 @@
 @import "../../../scss/custom.scss";
 
-$message-border-radius: 30px;
+$message-border-radius: 20px;
 
 .chat-container {
   display: flex;
@@ -45,7 +45,10 @@ $message-border-radius: 30px;
 }
 
 .chat-message {
-  padding: 16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: 5px;
+  padding-bottom: 3px;
 
   border-bottom-left-radius: 0;
   border-bottom-right-radius: $message-border-radius;
@@ -69,6 +72,11 @@ $message-border-radius: 30px;
   background-color: $primary;
 
   align-self: flex-end;
+}
+
+.chat-message-username {
+  font-size: 0.9em;
+  opacity: 0.5;
 }
 
 .new-message-input-container {
