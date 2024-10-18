@@ -1,7 +1,8 @@
 package com.tmploeg.chatapp.chat;
 
-public record ChatMessageDTO(String content, String sender) {
+public record ChatMessageDTO(String content, String sender, String sendAt) {
   public static ChatMessageDTO from(ChatMessage message) {
-    return new ChatMessageDTO(message.getContent(), message.getSender().getUsername());
+    return new ChatMessageDTO(
+        message.getContent(), message.getSender().getUsername(), message.getSendAt().toString());
   }
 }
