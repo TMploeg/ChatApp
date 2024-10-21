@@ -16,7 +16,7 @@ import LoadingPage from "./components/page/LoadingPage";
 import ChatHistoryType from "./enums/ChatHistoryType";
 
 const CHAT_HISTORY_ROUTE = "/user/queue/history";
-const DEBUG_ENABLED: boolean = true;
+const DEBUG_ENABLED: boolean = false;
 
 interface HistoryMessage {
   type: string;
