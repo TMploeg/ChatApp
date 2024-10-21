@@ -75,7 +75,6 @@ export default function LoginPage({ onLogin }: Props) {
                     variant="primary"
                     disabled={isSubmitting}
                     size="lg"
-                    onClick={() => console.log("Login Clicked!")}
                   >
                     Login
                   </Button>

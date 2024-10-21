@@ -130,7 +130,6 @@ function App() {
         }
 
         const type: ChatHistoryType = response.type as ChatHistoryType;
-        console.log("TYPE: ", type);
         if (type === ChatHistoryType.CONFIRMATION) {
           setConnected(true);
           return;
