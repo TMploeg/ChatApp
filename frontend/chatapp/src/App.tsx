@@ -144,7 +144,7 @@ function App() {
       }
     );
 
-    setHistoryUnsubscribeHandler((handler) => historySubscription.unsubscribe);
+    setHistoryUnsubscribeHandler(() => historySubscription.unsubscribe);
   }
 
   function handleDisconnect() {
