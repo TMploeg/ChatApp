@@ -35,7 +35,6 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
     setUsername(jwt.username);
   }, []);
 
-  const c = { key: "x" };
   return (
     <div className="chat-container">
       {titleText && <div className="chat-title">{titleText}</div>}
@@ -109,15 +108,27 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
       <ChatDateDivider
         key={date.toLocaleDateString()}
         date={
-          date.toLocaleString("default", {
-            month: "long",
-          }) +
-          " " +
-          date.getDate() +
-          ", " +
-          date.getFullYear()
+          isToday(date)
+            ? "Today"
+            : date.toLocaleString("default", {
+                month: "long",
+              }) +
+              " " +
+              date.getDate() +
+              ", " +
+              date.getFullYear()
         }
       />
+    );
+  }
+
+  function isToday(date: Date) {
+    const now = new Date();
+
+    return (
+      now.getUTCFullYear() === date.getUTCFullYear() &&
+      now.getUTCMonth() === date.getUTCMonth() &&
+      now.getUTCDate() === date.getUTCDate()
     );
   }
 }
