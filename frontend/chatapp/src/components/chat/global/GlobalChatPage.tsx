@@ -1,34 +1,33 @@
 import { useEffect, useState } from "react";
-import { Socket } from "../../../hooks/useWebSocket";
 import Message from "../../../models/message";
 import { ClipLoader } from "react-spinners";
 import Chat from "../Chat";
+import { StompSubscription } from "@stomp/stompjs";
 
 const SEND_MESSAGE_DESTINATION = "/send";
 
 interface Props {
-  socket: Socket;
-  connected: boolean;
+  subscribe: (
+    destination: string,
+    callback: (message: Message) => void
+  ) => StompSubscription;
+  send: (destination: string, message: string) => void;
   history?: Message[];
   clearHistory: () => void;
 }
 export default function GlobalChatPage({
-  socket,
-  connected,
+  subscribe,
+  send,
   history,
   clearHistory,
 }: Props) {
   const [messages, setMessages] = useState<Message[]>();
 
   useEffect(() => {
-    if (!connected) {
-      return;
-    }
-
-    let subscription = socket.subscribe<Message>("/chat", handleNewMessage);
+    let subscription = subscribe("/chat", handleNewMessage);
 
     return () => subscription.unsubscribe();
-  }, [connected]);
+  }, []);
 
   useEffect(() => {
     if (history === undefined) {
@@ -48,12 +47,12 @@ export default function GlobalChatPage({
   }
 
   return (
-    <Chat messages={messages} onSendMessage={send} titleText="Global Chat" />
+    <Chat
+      messages={messages}
+      onSendMessage={(message) => send(SEND_MESSAGE_DESTINATION, message)}
+      titleText="Global Chat"
+    />
   );
-
-  function send(message: string) {
-    socket.send(SEND_MESSAGE_DESTINATION, message);
-  }
 
   function handleNewMessage(message: Message) {
     setMessages((oldMessages) => {

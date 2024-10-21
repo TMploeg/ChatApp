@@ -11,7 +11,7 @@
   padding-left: 30px;
   padding-right: 30px;
 }
-.toolbar-start {
+.toolbar > * {
   display: flex;
   flex-direction: row;
   gap: 12px;

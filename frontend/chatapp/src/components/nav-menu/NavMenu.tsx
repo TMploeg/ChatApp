@@ -1,12 +1,14 @@
 import { Nav } from "react-bootstrap";
-import { BsGlobe, BsHouseFill } from "react-icons/bs";
-import { useAppNavigate } from "../../hooks";
+import { BsBoxArrowRight, BsGlobe, BsHouseFill } from "react-icons/bs";
+import { useAppNavigate, useStorage } from "../../hooks";
 import AppRoute from "../../enums/AppRoute";
 import "./NavMenu.scss";
+import { StorageLocation } from "../../enums/StorageLocation";
 
 const NAV_ICON_SIZE = 45;
 export default function NavMenu() {
   const navigate = useAppNavigate();
+  const { set: setToken } = useStorage(StorageLocation.JWT);
 
   return (
     <div className="nav-menu">

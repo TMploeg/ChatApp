@@ -12,20 +12,27 @@ import Toolbar from "./components/toolbar/Toolbar";
 import NavMenu from "./components/nav-menu/NavMenu";
 import AppRoute from "./enums/AppRoute";
 import "./App.scss";
+import LoadingPage from "./components/page/LoadingPage";
+import ChatHistoryType from "./enums/ChatHistoryType";
 
 const CHAT_HISTORY_ROUTE = "/user/queue/history";
-const DEBUG_ENABLED: boolean = false;
+const DEBUG_ENABLED: boolean = true;
 
 interface HistoryMessage {
-  data?: Message[];
+  type: string;
+  data: Message[];
 }
 
 function App() {
-  const { get: getToken } = useStorage<JWT>(StorageLocation.JWT);
+  const { get: getToken, set: setToken } = useStorage<JWT>(StorageLocation.JWT);
 
   const [connected, setConnected] = useState<boolean>(false);
   const [loggedIn, setLoggedIn] = useState<boolean>(!!getToken());
-  const [history, setHistory] = useState<Message[]>();
+  const [history, setHistory] = useState<{
+    [key in ChatHistoryType]?: Message[];
+  }>({});
+  const [historyUnsubscribeHandler, setHistoryUnsubscribeHandler] =
+    useState<() => void>();
 
   const socket = useWebSocket();
 
@@ -44,13 +51,21 @@ function App() {
       onConnect: handleConnect,
       onDisconnect: handleDisconnect,
     });
+
+    return () => socket.disconnect();
   }, [loggedIn]);
 
   return (
     <div className="app-container">
-      <Toolbar title="ChatApp" />
+      <Toolbar
+        title="ChatApp"
+        onLogout={() => {
+          setToken(null);
+          setLoggedIn(false);
+        }}
+      />
       <div className="app">
-        {loggedIn && (
+        {loggedIn && connected && (
           <div className="app-menu">
             <NavMenu />
           </div>
@@ -69,12 +84,18 @@ function App() {
             <Route
               path={AppRoute.GLOBAL_CHAT}
               element={
-                <GlobalChatPage
-                  socket={socket}
-                  connected={connected}
-                  history={history}
-                  clearHistory={() => setHistory(undefined)}
-                />
+                <LoadingPage loaded={connected}>
+                  <GlobalChatPage
+                    subscribe={(destination, callback) =>
+                      socket.subscribe<Message>(destination, callback)
+                    }
+                    send={(destination, message) =>
+                      socket.send(destination, message)
+                    }
+                    history={history.GLOBAL}
+                    clearHistory={() => clearHistory(ChatHistoryType.GLOBAL)}
+                  />
+                </LoadingPage>
               }
             />
           </>
@@ -100,19 +121,49 @@ function App() {
   }
 
   function handleConnect() {
-    socket.subscribe<HistoryMessage>(CHAT_HISTORY_ROUTE, (response) => {
-      // when subscribing to history, server will send an empty message to signal successful subscription
-      if (!response.data) {
-        setConnected(true);
-        return;
-      }
+    const historySubscription = socket.subscribe<HistoryMessage>(
+      CHAT_HISTORY_ROUTE,
+      (response) => {
+        if (!(response.type in ChatHistoryType)) {
+          console.error("invalid type detected");
+          return;
+        }
 
-      setHistory(response.data);
-    });
+        const type: ChatHistoryType = response.type as ChatHistoryType;
+        console.log("TYPE: ", type);
+        if (type === ChatHistoryType.CONFIRMATION) {
+          setConnected(true);
+          return;
+        }
+
+        setHistory((history) => {
+          const newHistory = { ...history };
+          newHistory[type] = response.data;
+
+          return newHistory;
+        });
+      }
+    );
+
+    setHistoryUnsubscribeHandler((handler) => historySubscription.unsubscribe);
   }
 
   function handleDisconnect() {
+    if (historyUnsubscribeHandler) {
+      historyUnsubscribeHandler();
+      setHistoryUnsubscribeHandler(undefined);
+    }
+
     setConnected(false);
+  }
+
+  function clearHistory(type: ChatHistoryType) {
+    setHistory((history) => {
+      const newHistory = { ...history };
+      delete newHistory[type];
+
+      return newHistory;
+    });
   }
 }
 

@@ -1,11 +1,10 @@
 package com.tmploeg.chatapp.websockets;
 
-import com.tmploeg.chatapp.chat.ChatHistoryDTO;
-import com.tmploeg.chatapp.chat.ChatMessageDTO;
-import com.tmploeg.chatapp.chat.ChatMessageService;
+import com.tmploeg.chatapp.chat.*;
 import com.tmploeg.chatapp.routing.StompBrokers;
 import com.tmploeg.chatapp.routing.StompRoutes;
 import java.security.Principal;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,16 +33,17 @@ public class SubscribeListener implements ApplicationListener<SessionSubscribeEv
 
     switch (destination) {
       case StompBrokers.CHAT:
-        sendHistory(event);
+        sendHistory(event, ChatHistoryType.GLOBAL, chatMessageService.getChatHistory());
         break;
       case StompRoutes.USER_DESTINATION + StompBrokers.HISTORY:
-        sendHistoryConfirmation(event);
+        sendHistory(event, ChatHistoryType.CONFIRMATION, List.of());
       default:
         break;
     }
   }
 
-  private void sendHistory(SessionSubscribeEvent event) {
+  private void sendHistory(
+      SessionSubscribeEvent event, ChatHistoryType type, List<ChatMessage> messages) {
     Principal user = event.getUser();
     if (user == null) {
       LOGGER.atError().log(USER_NOT_FOUND_ERROR_MESSAGE);
@@ -53,17 +53,6 @@ public class SubscribeListener implements ApplicationListener<SessionSubscribeEv
     template.convertAndSendToUser(
         user.getName(),
         StompBrokers.HISTORY,
-        new ChatHistoryDTO(
-            chatMessageService.getChatHistory().stream().map(ChatMessageDTO::from).toList()));
-  }
-
-  private void sendHistoryConfirmation(SessionSubscribeEvent event) {
-    Principal user = event.getUser();
-    if (user == null) {
-      LOGGER.atError().log(USER_NOT_FOUND_ERROR_MESSAGE);
-      return;
-    }
-
-    template.convertAndSendToUser(user.getName(), StompBrokers.HISTORY, new ChatHistoryDTO(null));
+        new ChatHistoryDTO(type, messages.stream().map(ChatMessageDTO::from).toList()));
   }
 }
