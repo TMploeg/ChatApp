@@ -1,6 +1,6 @@
 import { ReactElement, useEffect, useState } from "react";
 import { useAppNavigate, useStorage } from "../../hooks";
-import Message from "../../models/message";
+import Message, { NewMessage } from "../../models/message";
 import { JWT } from "../../models/auth";
 import { StorageLocation } from "../../enums/StorageLocation";
 import "./Chat.scss";
@@ -12,7 +12,7 @@ import ChatDateDivider from "./ChatDateDivider";
 
 interface Props {
   messages: Message[];
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: NewMessage) => void;
   titleText?: string;
 }
 export default function Chat({ messages, onSendMessage, titleText }: Props) {
@@ -61,7 +61,7 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
       return;
     }
 
-    onSendMessage(newMessage);
+    onSendMessage({ content: newMessage });
 
     setNewMessage("");
   }

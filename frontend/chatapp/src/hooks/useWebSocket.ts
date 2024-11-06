@@ -8,10 +8,10 @@ import { useState } from "react";
 import useStorage from "./useStorage";
 import { StorageLocation } from "../enums/StorageLocation";
 import { JWT } from "../models/auth";
+import StompBroker from "../enums/StompBroker";
+import useToken from "./useToken";
 
-const AUTH_HEADER_NAME: string = "Authorization";
 const HEARTBEAT_INTERVAL_DELAY: number = 180000;
-const APP_DESTINATION = "/app";
 
 export interface WebSocketConfig {
   enableDebug?: boolean;
@@ -21,6 +21,7 @@ export interface WebSocketConfig {
 export default function useWebSocket(): Socket {
   const { get: getJWT } = useStorage<JWT>(StorageLocation.JWT);
   const [stompClient] = useState<Client>(getClient());
+  const getToken = useToken();
 
   function connect(config?: WebSocketConfig) {
     if (stompClient.state !== ActivationState.INACTIVE) {
@@ -42,19 +43,8 @@ export default function useWebSocket(): Socket {
     stompClient.deactivate();
   }
 
-  function send(destination: string, content: string) {
-    if (stompClient.state !== ActivationState.ACTIVE) {
-      throw new Error("cannot send message when not connected");
-    }
-
-    stompClient.publish({
-      destination: APP_DESTINATION + destination,
-      body: content,
-    });
-  }
-
   function subscribe<TMessage>(
-    destination: string,
+    destination: StompBroker,
     callback: (message: TMessage) => void
   ) {
     if (stompClient.state !== ActivationState.ACTIVE) {
@@ -69,7 +59,6 @@ export default function useWebSocket(): Socket {
   return {
     connect,
     disconnect,
-    send,
     subscribe,
   };
 
@@ -84,23 +73,20 @@ export default function useWebSocket(): Socket {
       stompClient.debug = () => {};
     }
 
-    const jwt = getJWT();
-    if (!jwt) {
+    const token = getToken();
+    if (!token) {
       throw new Error("auth token missing");
     }
 
-    const headers: any = {};
-    headers[AUTH_HEADER_NAME] = jwt.token;
+    const headers: any = {
+      Authorization: token,
+    };
 
     stompClient.configure({
       connectHeaders: headers,
       heartbeatOutgoing: HEARTBEAT_INTERVAL_DELAY,
-      onConnect: () => {
-        config?.onConnect?.();
-      },
-      onDisconnect: () => {
-        config?.onDisconnect?.();
-      },
+      onConnect: config?.onConnect,
+      onDisconnect: config?.onDisconnect,
     });
   }
 }
@@ -108,9 +94,8 @@ export default function useWebSocket(): Socket {
 export interface Socket {
   connect: (config?: WebSocketConfig) => void;
   disconnect: () => void;
-  send: (destination: string, content: string) => void;
   subscribe: <T>(
-    destination: string,
+    destination: StompBroker,
     callback: (message: T) => void
   ) => StompSubscription;
 }

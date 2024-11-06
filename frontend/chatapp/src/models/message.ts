@@ -4,7 +4,11 @@ export default interface Message {
   sendAt: SendAt;
 }
 
-interface SendAt {
+export interface SendAt {
   date: string;
   time: string;
+}
+
+export interface NewMessage {
+  content: string;
 }

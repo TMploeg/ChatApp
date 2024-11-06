@@ -1,36 +1,24 @@
-import axios from "axios";
 import { Auth } from "../models";
 import useStorage from "./useStorage";
 import { StorageLocation } from "../enums/StorageLocation";
 import { JWT } from "../models/auth";
+import useApi from "./useApi";
+import ApiRoute from "../enums/ApiRoute";
 
 export default function useAuth() {
   const { set: setJWT } = useStorage<JWT>(StorageLocation.JWT);
+  const { post } = useApi();
 
   function login(loginData: Auth) {
-    return axios
-      .post<JWT>(import.meta.env.VITE_API_URL + "auth/login", loginData)
-      .then((response) => {
-        if (response.status.toString().charAt(0) !== "2") {
-          console.error("auth request failed");
-          return;
-        }
-
-        setJWT(response.data);
-      });
+    return post<JWT>(ApiRoute.LOGIN, loginData)
+      .then(setJWT)
+      .catch(() => alert("login failed"));
   }
 
   function register(registerData: Auth) {
-    return axios
-      .post<JWT>(import.meta.env.VITE_API_URL + "auth/register", registerData)
-      .then((response) => {
-        if (response.status.toString().charAt(0) !== "2") {
-          console.error("auth request failed");
-          return;
-        }
-
-        setJWT(response.data);
-      });
+    return post<JWT>(ApiRoute.REGISTER, registerData)
+      .then(setJWT)
+      .catch(() => alert("registration failed"));
   }
 
   return { login, register };

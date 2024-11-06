@@ -1,7 +1,6 @@
-package com.tmploeg.chatapp.websockets;
+package com.tmploeg.chatapp.messaging;
 
-import com.tmploeg.chatapp.routing.StompRoutes;
-import com.tmploeg.chatapp.security.AuthInterceptor;
+import com.tmploeg.chatapp.security.interceptors.AuthChannelInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -15,27 +14,27 @@ import org.springframework.web.socket.config.annotation.*;
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 @Order(Ordered.HIGHEST_PRECEDENCE + 99)
-public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
-  private final AuthInterceptor authInterceptor;
+public class MessagingConfiguration implements WebSocketMessageBrokerConfigurer {
+  private final AuthChannelInterceptor authChannelInterceptor;
 
   @Value("${app.cors}")
   private String cors;
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
-    registry.enableSimpleBroker(StompRoutes.BROKERS);
-    registry.setApplicationDestinationPrefixes(StompRoutes.APP_DESTINATION);
-    registry.setUserDestinationPrefix(StompRoutes.USER_DESTINATION);
+    registry.enableSimpleBroker(StompBroker.getAllRoutes());
+    registry.setUserDestinationPrefix("/user");
   }
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint(StompRoutes.ENDPOINT).setAllowedOrigins(cors);
-    registry.addEndpoint(StompRoutes.ENDPOINT).setAllowedOrigins(cors).withSockJS();
+    String stompEndpoint = "/stomp";
+    registry.addEndpoint(stompEndpoint).setAllowedOrigins(cors);
+    registry.addEndpoint(stompEndpoint).setAllowedOrigins(cors).withSockJS();
   }
 
   @Override
   public void configureClientInboundChannel(ChannelRegistration registration) {
-    registration.interceptors(authInterceptor);
+    registration.interceptors(authChannelInterceptor);
   }
 }

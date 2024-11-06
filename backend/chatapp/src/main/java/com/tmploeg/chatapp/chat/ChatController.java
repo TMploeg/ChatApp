@@ -1,25 +1,36 @@
 package com.tmploeg.chatapp.chat;
 
-import com.tmploeg.chatapp.routing.StompBrokers;
+import com.tmploeg.chatapp.ApiRoutes;
+import com.tmploeg.chatapp.messaging.MessagingService;
+import com.tmploeg.chatapp.messaging.StompBroker;
+import com.tmploeg.chatapp.security.AuthenticationProvider;
 import com.tmploeg.chatapp.users.User;
-import java.security.Principal;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
+@RequestMapping(ApiRoutes.CHAT)
 @RequiredArgsConstructor
+@CrossOrigin("${app.cors}")
 public class ChatController {
   private final ChatMessageService chatMessageService;
+  private final MessagingService messagingService;
+  private final AuthenticationProvider authenticationProvider;
 
-  @MessageMapping("/send")
-  @SendTo(StompBrokers.CHAT)
-  public ChatMessageDTO send(String content, Principal principal) {
-    User user = (User) principal;
+  @GetMapping
+  public List<ChatMessageDTO> getChatHistory() {
+    return chatMessageService.getChatHistory().stream().map(ChatMessageDTO::from).toList();
+  }
 
-    ChatMessage message = chatMessageService.save(content, user);
+  @PostMapping
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void send(@RequestBody NewMessageDTO newMessageDTO) {
+    User user = authenticationProvider.getAuthenticatedUser();
 
-    return ChatMessageDTO.from(message);
+    ChatMessage message = chatMessageService.save(newMessageDTO.content(), user);
+
+    messagingService.send(StompBroker.CHAT, ChatMessageDTO.from(message));
   }
 }

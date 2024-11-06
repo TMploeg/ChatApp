@@ -13,26 +13,14 @@ import NavMenu from "./components/nav-menu/NavMenu";
 import AppRoute from "./enums/AppRoute";
 import "./App.scss";
 import LoadingPage from "./components/page/LoadingPage";
-import ChatHistoryType from "./enums/ChatHistoryType";
 
-const CHAT_HISTORY_ROUTE = "/user/queue/history";
 const DEBUG_ENABLED: boolean = false;
-
-interface HistoryMessage {
-  type: string;
-  data: Message[];
-}
 
 function App() {
   const { get: getToken, set: setToken } = useStorage<JWT>(StorageLocation.JWT);
 
   const [connected, setConnected] = useState<boolean>(false);
   const [loggedIn, setLoggedIn] = useState<boolean>(!!getToken());
-  const [history, setHistory] = useState<{
-    [key in ChatHistoryType]?: Message[];
-  }>({});
-  const [historyUnsubscribeHandler, setHistoryUnsubscribeHandler] =
-    useState<() => void>();
 
   const socket = useWebSocket();
 
@@ -48,8 +36,8 @@ function App() {
 
     socket.connect({
       enableDebug: DEBUG_ENABLED,
-      onConnect: handleConnect,
-      onDisconnect: handleDisconnect,
+      onConnect: () => setConnected(true),
+      onDisconnect: () => setConnected(false),
     });
 
     return () => socket.disconnect();
@@ -89,11 +77,6 @@ function App() {
                     subscribe={(destination, callback) =>
                       socket.subscribe<Message>(destination, callback)
                     }
-                    send={(destination, message) =>
-                      socket.send(destination, message)
-                    }
-                    history={history.GLOBAL}
-                    clearHistory={() => clearHistory(ChatHistoryType.GLOBAL)}
                   />
                 </LoadingPage>
               }
@@ -118,51 +101,6 @@ function App() {
         <Route path={AppRoute.ANY} element={<Navigate to={AppRoute.HOME} />} />
       </Routes>
     );
-  }
-
-  function handleConnect() {
-    const historySubscription = socket.subscribe<HistoryMessage>(
-      CHAT_HISTORY_ROUTE,
-      (response) => {
-        if (!(response.type in ChatHistoryType)) {
-          console.error("invalid type detected");
-          return;
-        }
-
-        const type: ChatHistoryType = response.type as ChatHistoryType;
-        if (type === ChatHistoryType.CONFIRMATION) {
-          setConnected(true);
-          return;
-        }
-
-        setHistory((history) => {
-          const newHistory = { ...history };
-          newHistory[type] = response.data;
-
-          return newHistory;
-        });
-      }
-    );
-
-    setHistoryUnsubscribeHandler(() => historySubscription.unsubscribe);
-  }
-
-  function handleDisconnect() {
-    if (historyUnsubscribeHandler) {
-      historyUnsubscribeHandler();
-      setHistoryUnsubscribeHandler(undefined);
-    }
-
-    setConnected(false);
-  }
-
-  function clearHistory(type: ChatHistoryType) {
-    setHistory((history) => {
-      const newHistory = { ...history };
-      delete newHistory[type];
-
-      return newHistory;
-    });
   }
 }
 

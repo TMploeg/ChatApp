@@ -3,40 +3,27 @@ import Message from "../../../models/message";
 import { ClipLoader } from "react-spinners";
 import Chat from "../Chat";
 import { StompSubscription } from "@stomp/stompjs";
-
-const SEND_MESSAGE_DESTINATION = "/send";
+import { useApi } from "../../../hooks";
+import ApiRoute from "../../../enums/ApiRoute";
+import StompBroker from "../../../enums/StompBroker";
 
 interface Props {
   subscribe: (
-    destination: string,
+    destination: StompBroker,
     callback: (message: Message) => void
   ) => StompSubscription;
-  send: (destination: string, message: string) => void;
-  history?: Message[];
-  clearHistory: () => void;
 }
-export default function GlobalChatPage({
-  subscribe,
-  send,
-  history,
-  clearHistory,
-}: Props) {
+export default function GlobalChatPage({ subscribe }: Props) {
   const [messages, setMessages] = useState<Message[]>();
 
+  const { get, post } = useApi();
+
   useEffect(() => {
-    let subscription = subscribe("/chat", handleNewMessage);
+    let subscription = subscribe(StompBroker.CHAT, handleNewMessage);
+    get<Message[]>(ApiRoute.CHAT).then(setMessages);
 
     return () => subscription.unsubscribe();
   }, []);
-
-  useEffect(() => {
-    if (history === undefined) {
-      return;
-    }
-
-    setMessages(history);
-    clearHistory();
-  }, [history]);
 
   if (messages === undefined) {
     return (
@@ -49,7 +36,7 @@ export default function GlobalChatPage({
   return (
     <Chat
       messages={messages}
-      onSendMessage={(message) => send(SEND_MESSAGE_DESTINATION, message)}
+      onSendMessage={(message) => post(ApiRoute.CHAT, message)}
       titleText="Global Chat"
     />
   );
@@ -57,7 +44,6 @@ export default function GlobalChatPage({
   function handleNewMessage(message: Message) {
     setMessages((oldMessages) => {
       if (!oldMessages) {
-        console.warn("can't handle new message: not initialized");
         return undefined;
       }
 

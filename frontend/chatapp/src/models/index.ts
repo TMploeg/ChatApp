@@ -1,3 +1,4 @@
-import Auth from "./auth";
+import Auth, { JWT } from "./auth";
+import Message, { SendAt } from "./message";
 
-export type { Auth };
+export type { Auth, JWT, Message, SendAt };

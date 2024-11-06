@@ -1,28 +1,29 @@
-package com.tmploeg.chatapp.security;
+package com.tmploeg.chatapp.security.interceptors;
 
+import com.tmploeg.chatapp.security.jwt.TokenReader;
 import com.tmploeg.chatapp.users.User;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class AuthInterceptor implements ChannelInterceptor {
-  private static final Logger LOGGER = LoggerFactory.getLogger(AuthInterceptor.class);
-
+@Slf4j
+public class AuthChannelInterceptor extends AuthInterceptor implements ChannelInterceptor {
   @Value("${app.auth-header-name}")
   private String authHeaderName;
 
-  private final JWTService jwtService;
+  private final TokenReader tokenReader;
 
   @Override
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -30,21 +31,25 @@ public class AuthInterceptor implements ChannelInterceptor {
         MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
     if (accessor == null) {
-      LOGGER.atWarn().log("failed to get accessor");
+      log.warn("failed to get accessor");
       return null;
     }
 
+    // TODO enable connect without auth, but validate other messages
     if (!Objects.equals(accessor.getCommand(), StompCommand.CONNECT)) {
       return message;
     }
 
     String authorization = accessor.getFirstNativeHeader(authHeaderName);
-    User user = jwtService.readToken(authorization).orElse(null);
-    if (user == null) {
+
+    Optional<User> user = getUserFromAuthorization(authorization, tokenReader);
+    if (user.isEmpty()) {
+      log.info("unauthorized message blocked");
+      channel.send(new GenericMessage<>("can't connect: unauthorized"));
       return null;
     }
 
-    accessor.setUser(user);
+    accessor.setUser(() -> user.get().getUsername());
 
     return message;
   }

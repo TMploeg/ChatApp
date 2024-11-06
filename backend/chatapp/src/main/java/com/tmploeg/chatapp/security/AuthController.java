@@ -1,18 +1,22 @@
 package com.tmploeg.chatapp.security;
 
+import com.tmploeg.chatapp.ApiRoutes;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
+import com.tmploeg.chatapp.security.jwt.TokenDTO;
+import com.tmploeg.chatapp.security.jwt.TokenWriter;
 import com.tmploeg.chatapp.users.User;
 import com.tmploeg.chatapp.users.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping(ApiRoutes.AUTH)
 @RequiredArgsConstructor
 @CrossOrigin("${app.cors}")
+@Public
 public class AuthController {
   private final UserService userService;
-  private final JWTService jwtService;
+  private final TokenWriter tokenWriter;
 
   @PostMapping("login")
   public TokenDTO login(@RequestBody AuthDTO authDTO) {
@@ -29,7 +33,7 @@ public class AuthController {
             .filter(u -> userService.passwordMatches(u, authDTO.password()))
             .orElseThrow(() -> new BadRequestException("username or password is incorrect"));
 
-    String token = jwtService.createToken(user);
+    String token = tokenWriter.writeToken(user);
 
     return new TokenDTO(token, user.getUsername());
   }
@@ -49,6 +53,6 @@ public class AuthController {
 
     User newUser = userService.create(authDTO.username(), authDTO.password());
 
-    return new TokenDTO(jwtService.createToken(newUser), newUser.getUsername());
+    return new TokenDTO(tokenWriter.writeToken(newUser), newUser.getUsername());
   }
 }
