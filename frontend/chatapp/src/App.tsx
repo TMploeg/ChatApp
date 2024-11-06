@@ -47,6 +47,7 @@ function App() {
     <div className="app-container">
       <Toolbar
         title="ChatApp"
+        loggedIn={loggedIn}
         onLogout={() => {
           setToken(null);
           setLoggedIn(false);
