@@ -1,15 +1,21 @@
 package com.tmploeg.chatapp.messaging;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public enum StompBroker {
-  CHAT;
+  CHAT,
+  CONNECTION_REQUESTS("/queue");
+
+  private String prefix;
+
+  private StompBroker() {
+    this.prefix = "";
+  }
+
+  private StompBroker(String prefix) {
+    this.prefix = prefix;
+  }
 
   public String getRoute() {
-    return "/" + name().toLowerCase().replace('_', '-');
+    return prefix + "/" + name().toLowerCase().replace('_', '-');
   }
 
   public static String[] getAllRoutes() {

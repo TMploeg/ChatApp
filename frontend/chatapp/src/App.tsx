@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useStorage, useWebSocket } from "./hooks";
+import { useCheckin, useStorage, useWebSocket } from "./hooks";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { StorageLocation } from "./enums/StorageLocation";
 import LoginPage from "./components/auth/login/LoginPage";
@@ -13,16 +13,26 @@ import NavMenu from "./components/nav-menu/NavMenu";
 import AppRoute from "./enums/AppRoute";
 import "./App.scss";
 import LoadingPage from "./components/page/LoadingPage";
+import Notification from "./components/notifications/Notification";
+import { ToastContainer } from "react-bootstrap";
+import AppContext from "./AppContext";
+import NotificationData from "./models/notification-data";
 
 const DEBUG_ENABLED: boolean = false;
+const MAX_NOTIFICATIONS: number = 5;
 
-function App() {
+interface Props {
+  notifications: NotificationData[];
+}
+function App({ notifications }: Props) {
   const { get: getToken, set: setToken } = useStorage<JWT>(StorageLocation.JWT);
 
   const [connected, setConnected] = useState<boolean>(false);
   const [loggedIn, setLoggedIn] = useState<boolean>(!!getToken());
 
   const socket = useWebSocket();
+
+  const checkin = useCheckin();
 
   useEffect(() => {
     if (loggedIn === connected) {
@@ -43,6 +53,16 @@ function App() {
     return () => socket.disconnect();
   }, [loggedIn]);
 
+  useEffect(() => {
+    if (connected) {
+      if (!loggedIn) {
+        console.error("not logged in");
+      }
+
+      checkin();
+    }
+  }, [connected]);
+
   return (
     <div className="app-container">
       <Toolbar
@@ -61,6 +81,11 @@ function App() {
         )}
         <div className="app-content">{getRoutes()}</div>
       </div>
+      <ToastContainer className="notification-container" position="bottom-end">
+        {notifications.map((notification) => (
+          <Notification key={notification.id} notification={notification} />
+        ))}
+      </ToastContainer>
     </div>
   );
 
@@ -105,4 +130,32 @@ function App() {
   }
 }
 
-export default App;
+export default function AppContainer() {
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+
+  return (
+    <AppContext.Provider
+      value={{
+        addNotification: handleNewNotification,
+      }}
+    >
+      <App notifications={notifications} />
+    </AppContext.Provider>
+  );
+
+  function handleNewNotification(notification: NotificationData) {
+    setNotifications((notifications) => {
+      const remainingNotificationSlots: number =
+        MAX_NOTIFICATIONS - notifications.length;
+
+      if (remainingNotificationSlots > 0) {
+        return [...notifications, notification];
+      }
+
+      return [
+        ...notifications.slice(Math.abs(remainingNotificationSlots) + 1),
+        notification,
+      ];
+    });
+  }
+}

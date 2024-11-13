@@ -1,0 +1,17 @@
+.notification-header {
+  flex: 1;
+
+  .notification-header-icon {
+    margin-right: 8px;
+  }
+
+  .notification-header-title {
+    font-weight: bold;
+    opacity: 0.8;
+  }
+}
+
+.notification-text {
+  color: black;
+  opacity: 0.9;
+}

@@ -33,7 +33,7 @@ public class AuthHandlerInterceptor extends AuthInterceptor implements HandlerIn
       log.warn(
           "failed to handle request, handler not of type 'HandlerMethod' (handler: '{}')",
           handler.getClass().getName());
-      return false;
+      return true;
     }
 
     if (isPublic(handlerMethod.getMethod())) {
