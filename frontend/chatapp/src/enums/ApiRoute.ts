@@ -1,16 +1,13 @@
 export default class ApiRoute {
-  public static readonly CHAT: () => ApiRoute = () => new ApiRoute(Route.CHAT);
-  public static readonly LOGIN: () => ApiRoute = () =>
-    new ApiRoute(Route.LOGIN);
-  public static readonly REGISTER: () => ApiRoute = () =>
-    new ApiRoute(Route.REGISTER);
-  public static readonly CHECKIN: () => ApiRoute = () =>
-    new ApiRoute(Route.CHECKIN);
-  public static readonly CONNECTION_REQUESTS: () => ApiRoute = () =>
+  public static readonly CHAT = () => new ApiRoute(Route.CHAT);
+  public static readonly LOGIN = () => new ApiRoute(Route.LOGIN);
+  public static readonly REGISTER = () => new ApiRoute(Route.REGISTER);
+  public static readonly CHECKIN = () => new ApiRoute(Route.CHECKIN);
+  public static readonly CONNECTION_REQUESTS = () =>
     new ApiRoute(Route.CONNECTION_REQUESTS);
-  public static readonly SINGLE_CONNECTION_REQUEST: (id: string) => ApiRoute = (
-    id
-  ) => new ApiRoute(`${Route.CONNECTION_REQUESTS}/${id}`);
+  public static readonly SINGLE_CONNECTION_REQUEST = (id: string) =>
+    new ApiRoute(`${Route.CONNECTION_REQUESTS}/${id}`);
+  public static readonly CONNECTIONS = () => new ApiRoute(Route.CONNECTIONS);
 
   public readonly destination: string;
 
@@ -25,4 +22,5 @@ enum Route {
   REGISTER = "/auth/register",
   CHECKIN = "/checkin",
   CONNECTION_REQUESTS = "/connectionrequests",
+  CONNECTIONS = "/connections",
 }

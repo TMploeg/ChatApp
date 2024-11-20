@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import ConnectionRequestDirection from "../../enums/ConnectionRequestDirection";
 import { Variant } from "react-bootstrap/esm/types";
+import SeperatedList from "../generic/seperated-list/SeperatedList";
 
 const VISIBLE_STATES: ConnectionRequestState[] = [
   ConnectionRequestState.SEND,
@@ -34,28 +35,22 @@ export default function ConnectionRequestsPage() {
     <div className="connection-requests-page">
       <PageTitle text="Connection Requests" />
       <div className="connection-requests-container">
-        {requests !== undefined ? getNewRequestViews(requests) : <ClipLoader />}
+        {requests !== undefined ? (
+          <SeperatedList
+            items={requests}
+            ItemRenderElement={({ item: request }) => (
+              <RequestView
+                request={request}
+                onRequestInteraction={handleRequestInteraction}
+              />
+            )}
+          />
+        ) : (
+          <ClipLoader />
+        )}
       </div>
     </div>
   );
-
-  function getNewRequestViews(requests: ConnectionRequest[]) {
-    return requests.flatMap((request, index) => {
-      const newElements = [
-        <RequestView
-          key={"req_" + request.id}
-          request={request}
-          onRequestInteraction={handleRequestInteraction}
-        />,
-      ];
-
-      if (index > 0) {
-        newElements.unshift(<hr key={"hr_" + index} />);
-      }
-
-      return newElements;
-    });
-  }
 
   function handleRequestInteraction(
     request: ConnectionRequest,

@@ -15,26 +15,20 @@ public class ConnectionRequestService {
 
   public Set<ConnectionRequest> getRequestsByUser(User user, ConnectionRequestDirection direction) {
     return switch (direction) {
-      case ALL ->
-          connectionRequestRepository.findByConnectee_usernameOrConnectorUsername(
-              user.getUsername(), user.getUsername());
-      case SEND -> connectionRequestRepository.findByConnector_username(user.getUsername());
-      case RECEIVED -> connectionRequestRepository.findByConnectee_username(user.getUsername());
+      case ALL -> connectionRequestRepository.findByUsername(user.getUsername());
+      case SEND -> connectionRequestRepository.findByConnectorUsername(user.getUsername());
+      case RECEIVED -> connectionRequestRepository.findByConnecteeUsername(user.getUsername());
     };
   }
 
   public Set<ConnectionRequest> getRequestsByUser(
       User user, Collection<ConnectionRequestState> states, ConnectionRequestDirection direction) {
     return switch (direction) {
-      case ALL ->
-          connectionRequestRepository.findByConnectee_usernameOrConnectorUsernameAndStateIn(
-              user.getUsername(), user.getUsername(), states);
+      case ALL -> connectionRequestRepository.findByUsernameAndStates(user.getUsername(), states);
       case SEND ->
-          connectionRequestRepository.findByConnector_usernameAndStateIn(
-              user.getUsername(), states);
+          connectionRequestRepository.findByConnectorUsernameAndStates(user.getUsername(), states);
       case RECEIVED ->
-          connectionRequestRepository.findByConnectee_usernameAndStateIn(
-              user.getUsername(), states);
+          connectionRequestRepository.findByConnecteeUsernameAndStates(user.getUsername(), states);
     };
   }
 

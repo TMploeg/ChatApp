@@ -23,21 +23,38 @@ public interface ConnectionRequestRepository extends JpaRepository<ConnectionReq
   Optional<ConnectionRequest> getRequestByIdForUser(
       @Param("id") UUID id, @Param("username") String username);
 
-  Set<ConnectionRequest> findByConnectee_username(String connecteeUsername);
+  @Query("SELECT cR FROM ConnectionRequest cR " + "WHERE cR.connectee.username = :username")
+  Set<ConnectionRequest> findByConnecteeUsername(@Param("username") String username);
 
-  Set<ConnectionRequest> findByConnector_username(String connectorUsername);
+  @Query("SELECT cR FROM ConnectionRequest cR " + "WHERE cR.connector.username = :username")
+  Set<ConnectionRequest> findByConnectorUsername(@Param("username") String username);
 
-  Set<ConnectionRequest> findByConnectee_usernameOrConnectorUsername(
-      String connecteeUsername, String connectorUsername);
+  @Query(
+      "SELECT cR FROM ConnectionRequest cR "
+          + "WHERE (cR.connectee.username = :username OR cR.connector.username = :username)")
+  Set<ConnectionRequest> findByUsername(@Param("username") String username);
 
-  Set<ConnectionRequest> findByConnectee_usernameAndStateIn(
-      String connecteeUsername, Collection<ConnectionRequestState> states);
+  @Query(
+      "SELECT cR FROM ConnectionRequest cR "
+          + "WHERE cR.connectee.username = :username "
+          + "AND cR.state IN :states")
+  Set<ConnectionRequest> findByConnecteeUsernameAndStates(
+      @Param("username") String username,
+      @Param("states") Collection<ConnectionRequestState> states);
 
-  Set<ConnectionRequest> findByConnector_usernameAndStateIn(
-      String connectorUsername, Collection<ConnectionRequestState> states);
+  @Query(
+      "SELECT cR FROM ConnectionRequest cR "
+          + "WHERE cR.connector.username = :username "
+          + "AND cR.state IN :states")
+  Set<ConnectionRequest> findByConnectorUsernameAndStates(
+      @Param("username") String username,
+      @Param("states") Collection<ConnectionRequestState> states);
 
-  Set<ConnectionRequest> findByConnectee_usernameOrConnectorUsernameAndStateIn(
-      String connecteeUsername,
-      String connectorUsername,
-      Collection<ConnectionRequestState> states);
+  @Query(
+      "SELECT cR FROM ConnectionRequest cR "
+          + "WHERE (cR.connectee.username = :username OR cR.connector.username = :username) "
+          + "AND cR.state IN :states")
+  Set<ConnectionRequest> findByUsernameAndStates(
+      @Param("username") String username,
+      @Param("states") Collection<ConnectionRequestState> states);
 }
