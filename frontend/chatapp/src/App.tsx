@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   useCheckin,
   useConnectionRequests,
@@ -20,19 +20,16 @@ import "./App.scss";
 import LoadingPage from "./components/page/LoadingPage";
 import Notification from "./components/notifications/Notification";
 import { ToastContainer } from "react-bootstrap";
-import AppContext from "./AppContext";
+import AppContext, { AppContextData } from "./AppContext";
 import NotificationData from "./models/notification-data";
 import ConnectionsPage from "./components/connections/ConnectionsPage";
 import ConnectionRequestsPage from "./components/connection-requests/ConnectionRequestsPage";
+import AlertData from "./models/alert-data";
 
 const DEBUG_ENABLED: boolean = false;
 const MAX_NOTIFICATIONS: number = 5;
 
-interface Props {
-  notifications?: NotificationData[];
-  onDisconnect: () => void;
-}
-function App({ notifications, onDisconnect }: Props) {
+function App() {
   const { get: getToken, set: setToken } = useStorage<JWT>(StorageLocation.JWT);
 
   const [connected, setConnected] = useState<boolean>(false);
@@ -45,6 +42,9 @@ function App({ notifications, onDisconnect }: Props) {
   const checkin = useCheckin();
 
   const { enableConnectionRequestListener } = useConnectionRequests(socket);
+
+  const { notifications: notificationContext } =
+    useContext<AppContextData>(AppContext);
 
   useEffect(() => {
     if (loggedIn === connected) {
@@ -88,8 +88,8 @@ function App({ notifications, onDisconnect }: Props) {
         <div className="app-content">{getRoutes()}</div>
       </div>
       <ToastContainer className="notification-container" position="bottom-end">
-        {notifications &&
-          notifications.map((notification) => (
+        {notificationContext.data &&
+          notificationContext.data.map((notification) => (
             <Notification key={notification.id} notification={notification} />
           ))}
       </ToastContainer>
@@ -161,7 +161,7 @@ function App({ notifications, onDisconnect }: Props) {
   function handleDisconnected() {
     setConnected(false);
 
-    onDisconnect();
+    notificationContext.clear?.();
   }
 }
 
@@ -172,15 +172,14 @@ export default function AppContainer() {
     <AppContext.Provider
       value={{
         notifications: {
+          data: notifications,
           add: handleNewNotification,
           init: () => setNotifications([]),
+          clear: () => setNotifications(undefined),
         },
       }}
     >
-      <App
-        notifications={notifications}
-        onDisconnect={() => setNotifications(undefined)}
-      />
+      <App />
     </AppContext.Provider>
   );
 

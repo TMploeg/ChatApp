@@ -10,15 +10,11 @@ export default function useAuth() {
   const { post } = useApi();
 
   function login(loginData: Auth) {
-    return post<JWT>(ApiRoute.LOGIN(), loginData)
-      .then(setJWT)
-      .catch(() => alert("login failed"));
+    return post<JWT>(ApiRoute.LOGIN(), loginData).then(setJWT);
   }
 
   function register(registerData: Auth) {
-    return post<JWT>(ApiRoute.REGISTER(), registerData)
-      .then(setJWT)
-      .catch(() => alert("registration failed"));
+    return post<JWT>(ApiRoute.REGISTER(), registerData).then(setJWT);
   }
 
   return { login, register };

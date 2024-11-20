@@ -1,3 +1,4 @@
+import useAlert from "./useAlert";
 import useApi from "./useApi";
 import useAppNavigate from "./useAppNavigate";
 import useAuth from "./useAuth";
@@ -16,4 +17,5 @@ export {
   useToken,
   useCheckin,
   useConnectionRequests,
+  useAlert,
 };

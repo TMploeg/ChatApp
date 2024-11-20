@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Toast } from "react-bootstrap";
+import { Toast } from "react-bootstrap";
 import "./Notification.scss";
 import NotificationData from "../../models/notification-data";
 
@@ -19,18 +19,23 @@ export default function Notification({ notification }: Props) {
       onClose={() => setVisible(() => false)}
       autohide
       delay={NOTIFICATION_AUTOHIDE_DELAY}
+      bg={notification.variant ?? "primary"}
     >
       <Toast.Header>
         <div className="notification-header">
-          <notification.icon className="notification-header-icon" />
+          {notification.icon && (
+            <notification.icon className="notification-header-icon" />
+          )}
           <span className="notification-header-title">
             {notification.title}
           </span>
         </div>
       </Toast.Header>
-      <Toast.Body>
-        <div className="notification-text">{notification.text}</div>
-      </Toast.Body>
+      {notification.text && (
+        <Toast.Body>
+          <div className="notification-text">{notification.text}</div>
+        </Toast.Body>
+      )}
     </Toast>
   );
 }

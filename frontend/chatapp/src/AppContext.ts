@@ -2,18 +2,24 @@ import { createContext } from "react";
 import NotificationData from "./models/notification-data";
 
 export interface AppContextData {
-  notifications: NotificationContextData;
+  notifications: CollectionContextData<NotificationData>;
 }
-export interface NotificationContextData {
-  add: (notification: NotificationData) => void;
+interface CollectionContextData<TData> {
+  data?: TData[];
+  add: (notification: TData) => void;
   init: () => void;
+  clear?: () => void;
 }
 
 const AppContext = createContext<AppContextData>({
   notifications: {
-    add: () => console.error("context not set"),
-    init: () => console.error("context not set"),
+    add: contextNotSetError,
+    init: contextNotSetError,
   },
 });
+
+function contextNotSetError() {
+  console.error("context not set");
+}
 
 export default AppContext;

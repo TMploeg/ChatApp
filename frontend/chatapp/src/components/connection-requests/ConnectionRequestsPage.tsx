@@ -3,12 +3,13 @@ import { ConnectionRequest } from "../../models/connection-requests";
 import PageTitle from "../page/title/PageTitle";
 import "./ConnectionRequestsPage.scss";
 import { Button } from "react-bootstrap";
-import { useApi } from "../../hooks";
+import { useAlert, useApi } from "../../hooks";
 import ConnectionRequestState from "../../enums/ConnectionRequestState";
 import ApiRoute from "../../enums/ApiRoute";
 import { useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import ConnectionRequestDirection from "../../enums/ConnectionRequestDirection";
+import { Variant } from "react-bootstrap/esm/types";
 
 const VISIBLE_STATES: ConnectionRequestState[] = [
   ConnectionRequestState.SEND,
@@ -17,7 +18,10 @@ const VISIBLE_STATES: ConnectionRequestState[] = [
 
 export default function ConnectionRequestsPage() {
   const { get, patch } = useApi();
+
   const [requests, setRequests] = useState<ConnectionRequest[]>();
+
+  const alert = useAlert();
 
   useEffect(() => {
     get<ConnectionRequest[]>(ApiRoute.CONNECTION_REQUESTS(), {
@@ -41,7 +45,7 @@ export default function ConnectionRequestsPage() {
         <RequestView
           key={"req_" + request.id}
           request={request}
-          onRequestInteraction={handleRequestInteracted}
+          onRequestInteraction={handleRequestInteraction}
         />,
       ];
 
@@ -53,14 +57,17 @@ export default function ConnectionRequestsPage() {
     });
   }
 
-  function handleRequestInteracted(
+  function handleRequestInteraction(
     request: ConnectionRequest,
     state: ConnectionRequestState
   ) {
     patch<void>(ApiRoute.SINGLE_CONNECTION_REQUEST(request.id), {
       state,
     })
-      .then(() => removeRequest(request))
+      .then(() => {
+        removeRequest(request);
+        sendRequestInteractionSuccesAlert(state);
+      })
       .catch((error) => console.error(error));
   }
 
@@ -72,6 +79,27 @@ export default function ConnectionRequestsPage() {
 
       return requests.filter((r) => r.id !== request.id);
     });
+  }
+
+  function sendRequestInteractionSuccesAlert(
+    requestState: ConnectionRequestState
+  ) {
+    type AlertData = { message: string; variant: Variant };
+    const data: AlertData | null =
+      requestState === ConnectionRequestState.ACCEPTED
+        ? { message: "Request accepted!", variant: "success" }
+        : requestState === ConnectionRequestState.REJECTED
+        ? { message: "Request rejected.", variant: "info" }
+        : requestState === ConnectionRequestState.IGNORED
+        ? { message: "Request ignored.", variant: "info" }
+        : null;
+
+    if (data === null) {
+      console.error("invalid state detected at interaction alert");
+      return;
+    }
+
+    alert(data.message, data.variant);
   }
 }
 
