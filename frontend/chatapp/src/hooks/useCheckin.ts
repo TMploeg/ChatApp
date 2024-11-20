@@ -7,13 +7,15 @@ import useNotification from "./useNotification";
 
 export default function useCheckin() {
   const { get } = useApi();
-  const { addNotification } = useContext<AppContextData>(AppContext);
+  const { notifications } = useContext<AppContextData>(AppContext);
   const { getConnectionRequestNotification } = useNotification();
 
   return function checkin() {
     get<CheckinData>(ApiRoute.CHECKIN).then((checkinData) => {
+      notifications.init();
+
       for (let request of checkinData.newConnectionRequests) {
-        addNotification(getConnectionRequestNotification(request));
+        notifications.add(getConnectionRequestNotification(request));
       }
     });
   };

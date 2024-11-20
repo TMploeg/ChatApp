@@ -1,4 +1,3 @@
-import { Color } from "react-bootstrap/esm/types";
 import { IconType } from "react-icons";
 
 export default interface NotificationData {
@@ -6,10 +5,4 @@ export default interface NotificationData {
   icon: IconType;
   title: string;
   text: string;
-  actions?: { [key: string]: NotificationAction };
-}
-
-export interface NotificationAction {
-  type: Color;
-  onClick: () => void;
 }

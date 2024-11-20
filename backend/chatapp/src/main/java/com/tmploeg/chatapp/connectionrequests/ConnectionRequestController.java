@@ -71,11 +71,13 @@ public class ConnectionRequestController {
       throw new BadRequestException("request to user already exists");
     }
 
-    connectionRequestService.save(connector, connectee);
+    ConnectionRequest request = connectionRequestService.save(connector, connectee);
+
     messagingService.sendToUser(
         connectee,
         StompBroker.CONNECTION_REQUESTS,
-        new ConnectionRequestDTO(connector.getUsername(), null));
+        new ReceivedConnectionRequestDTO(
+            request.getId(), request.getConnector().getUsername(), request.getState().toString()));
   }
 
   @PatchMapping("{id}")

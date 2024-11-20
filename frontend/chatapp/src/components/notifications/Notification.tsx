@@ -30,17 +30,6 @@ export default function Notification({ notification }: Props) {
       </Toast.Header>
       <Toast.Body>
         <div className="notification-text">{notification.text}</div>
-        <div className="notification-actions">
-          {notification.actions &&
-            Object.keys(notification.actions).map((key) => (
-              <Button
-                variant={notification.actions![key].type}
-                onClick={notification.actions![key].onClick}
-              >
-                {key}
-              </Button>
-            ))}
-        </div>
       </Toast.Body>
     </Toast>
   );

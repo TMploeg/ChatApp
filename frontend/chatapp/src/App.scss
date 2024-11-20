@@ -1,4 +1,4 @@
-@import "../scss/custom.scss";
+@import "../scss/custom.module.scss";
 
 .app-container {
   font-family: "Roboto", system-ui;
@@ -24,7 +24,7 @@
 }
 
 .app-menu {
-  width: 450px;
+  width: min(300px);
 }
 .app-content {
   display: flex;

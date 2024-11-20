@@ -1,11 +1,10 @@
-@import "../../../scss/custom.scss";
+@import "../../../scss/custom.module.scss";
 
 $message-border-radius: 20px;
 
 .chat-container {
   display: flex;
   flex-direction: column;
-  // gap: 32px;
 
   flex: 1;
   overflow-y: hidden;

@@ -1,0 +1,39 @@
+@import "../../../../scss/custom.module.scss";
+
+.page-title {
+  padding: 12px;
+  box-shadow: 0 1px 5px black;
+
+  z-index: 1;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  background-color: rgba($primary, 0.25);
+
+  .page-title-text {
+    font-size: 64px;
+  }
+
+  .page-title-children {
+    flex: 1;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  .page-title-children.start {
+    justify-content: flex-start;
+  }
+  .page-title-children.end {
+    justify-content: flex-end;
+  }
+  .page-title-children.space-around {
+    justify-content: space-around;
+  }
+  .page-title-children.space-between {
+    justify-content: space-between;
+  }
+}

@@ -1,11 +1,11 @@
-@import "../../../scss/custom.scss";
+@import "../../../scss/custom.module.scss";
 
 $nav-default-opacity: 0;
 $nav-hover-opacity: 0.15;
 $nav-active-opacity: 0.25;
 
 .nav-menu {
-  background-color: $secondary;
+  background-color: #303030;
   height: 100%;
 
   padding-top: 10px;
@@ -34,4 +34,9 @@ $nav-active-opacity: 0.25;
 }
 .nav > *:active {
   background-color: rgba(0, 0, 0, $nav-active-opacity);
+}
+
+.nav-item-text {
+  position: relative;
+  padding-right: 8px;
 }

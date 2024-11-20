@@ -9,6 +9,7 @@ import { BsSendFill } from "react-icons/bs";
 import AppRoute from "../../enums/AppRoute";
 import ChatMessage from "./ChatMessage";
 import ChatDateDivider from "./ChatDateDivider";
+import PageTitle from "../page/title/PageTitle";
 
 interface Props {
   messages: Message[];
@@ -37,7 +38,7 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
 
   return (
     <div className="chat-container">
-      {titleText && <div className="chat-title">{titleText}</div>}
+      {titleText && <PageTitle text={titleText} />}
       <div className="chat-message-container">
         <div className="chat-messages">{getMessageViews()}</div>
         <div className="new-message-input-container">

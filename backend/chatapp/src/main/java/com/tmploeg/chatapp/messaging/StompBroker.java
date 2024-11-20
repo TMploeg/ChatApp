@@ -4,7 +4,7 @@ public enum StompBroker {
   CHAT,
   CONNECTION_REQUESTS("/queue");
 
-  private String prefix;
+  private final String prefix;
 
   private StompBroker() {
     this.prefix = "";

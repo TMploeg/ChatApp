@@ -22,4 +22,9 @@ public enum ConnectionRequestState {
 
     return Optional.empty();
   }
+
+  @Override
+  public String toString() {
+    return super.toString().toLowerCase();
+  }
 }

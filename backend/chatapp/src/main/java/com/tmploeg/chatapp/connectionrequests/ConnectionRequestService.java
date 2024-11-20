@@ -20,8 +20,8 @@ public class ConnectionRequestService {
     return connectionRequestRepository.findByConnectee_usernameAndState(user.getUsername(), state);
   }
 
-  public void save(User connector, User connectee) {
-    connectionRequestRepository.save(new ConnectionRequest(connector, connectee));
+  public ConnectionRequest save(User connector, User connectee) {
+    return connectionRequestRepository.save(new ConnectionRequest(connector, connectee));
   }
 
   public boolean openRequestExists(User connector, User connectee) {

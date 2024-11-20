@@ -1,3 +1,5 @@
+import PageTitle from "../page/title/PageTitle";
+
 export default function HomePage() {
-  return <div>Epic Home Page!</div>;
+  return <PageTitle text="Home" />;
 }
