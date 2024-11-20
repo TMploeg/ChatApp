@@ -23,6 +23,7 @@ import { ToastContainer } from "react-bootstrap";
 import AppContext from "./AppContext";
 import NotificationData from "./models/notification-data";
 import ConnectionsPage from "./components/connections/ConnectionsPage";
+import ConnectionRequestsPage from "./components/connection-requests/ConnectionRequestsPage";
 
 const DEBUG_ENABLED: boolean = false;
 const MAX_NOTIFICATIONS: number = 5;
@@ -123,6 +124,10 @@ function App({ notifications, onDisconnect }: Props) {
                   }
                 />
               }
+            />
+            <Route
+              path={AppRoute.CONNECTION_REQUESTS}
+              element={<ConnectionRequestsPage />}
             />
           </>
         ) : (

@@ -1,6 +1,7 @@
 package com.tmploeg.chatapp.checkin;
 
 import com.tmploeg.chatapp.ApiRoutes;
+import com.tmploeg.chatapp.connectionrequests.ConnectionRequestDirection;
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequestService;
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequestState;
 import com.tmploeg.chatapp.connectionrequests.dtos.ReceivedConnectionRequestDTO;
@@ -27,7 +28,8 @@ public class CheckinController {
 
     List<ReceivedConnectionRequestDTO> newRequests =
         connectionRequestService
-            .getRequestsByUserAndState(user, ConnectionRequestState.SEND)
+            .getRequestsByUser(
+                user, List.of(ConnectionRequestState.SEND), ConnectionRequestDirection.RECEIVED)
             .stream()
             .map(ReceivedConnectionRequestDTO::from)
             .toList();

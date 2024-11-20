@@ -1,0 +1,40 @@
+.connection-requests-page {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .connection-requests-container {
+    padding: 8px;
+    padding-top: 16px;
+
+    flex: 1;
+    overflow-y: scroll;
+
+    .connection-request {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .connection-request-image {
+        padding: 16px;
+        padding-right: 24px;
+      }
+
+      .connection-request-username {
+        padding: 12px;
+      }
+
+      .connection-request-buttons {
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+
+        button {
+          font-weight: bold;
+        }
+      }
+    }
+  }
+}

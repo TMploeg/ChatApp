@@ -20,7 +20,7 @@ export default function GlobalChatPage({ subscribe }: Props) {
 
   useEffect(() => {
     let subscription = subscribe(StompBroker.CHAT, handleNewMessage);
-    get<Message[]>(ApiRoute.CHAT).then(setMessages);
+    get<Message[]>(ApiRoute.CHAT()).then(setMessages);
 
     return () => subscription.unsubscribe();
   }, []);
@@ -36,7 +36,7 @@ export default function GlobalChatPage({ subscribe }: Props) {
   return (
     <Chat
       messages={messages}
-      onSendMessage={(message) => post(ApiRoute.CHAT, message)}
+      onSendMessage={(message) => post(ApiRoute.CHAT(), message)}
       titleText="Global Chat"
     />
   );

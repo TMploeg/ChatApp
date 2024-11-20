@@ -29,18 +29,50 @@ public class ConnectionRequestController {
   private final MessagingService messagingService;
   private final AuthenticationProvider authenticationProvider;
 
-  @GetMapping("received")
+  @GetMapping
   public List<ReceivedConnectionRequestDTO> getConnectionRequests(
-      @RequestParam(name = "state", required = false) String state) {
-    Optional<ConnectionRequestState> targetState = ConnectionRequestState.tryParse(state);
+      @RequestParam(name = "state", required = false) String[] states,
+      @RequestParam(name = "direction", required = false) String direction) {
     User user = authenticationProvider.getAuthenticatedUser();
 
-    Set<ConnectionRequest> requests =
-        targetState.isPresent()
-            ? connectionRequestService.getRequestsByUserAndState(user, targetState.get())
-            : connectionRequestService.getRequestsByUser(user);
+    ConnectionRequestDirection parsedDirection = parseDirection(direction);
 
-    return requests.stream().map(ReceivedConnectionRequestDTO::from).toList();
+    if (states == null || states.length == 0) {
+      return connectionRequestService.getRequestsByUser(user, parsedDirection).stream()
+          .map(ReceivedConnectionRequestDTO::from)
+          .toList();
+    }
+
+    return connectionRequestService
+        .getRequestsByUser(user, parseStates(states), parsedDirection)
+        .stream()
+        .map(ReceivedConnectionRequestDTO::from)
+        .toList();
+  }
+
+  private ConnectionRequestDirection parseDirection(String direction) {
+    return direction == null
+        ? ConnectionRequestDirection.ALL
+        : ConnectionRequestDirection.tryParse(direction)
+            .orElseThrow(
+                () ->
+                    new BadRequestException(
+                        "direction is invalid (invalid value: '" + direction + "')"));
+  }
+
+  private Collection<ConnectionRequestState> parseStates(String[] states) {
+    List<ConnectionRequestState> targetStates = new ArrayList<>(states.length);
+
+    for (String state : states) {
+      targetStates.add(
+          ConnectionRequestState.tryParse(state)
+              .orElseThrow(
+                  () ->
+                      new BadRequestException(
+                          "state contains invalid value (invalid value: '" + state + "')")));
+    }
+
+    return targetStates;
   }
 
   @PostMapping
@@ -48,24 +80,24 @@ public class ConnectionRequestController {
   public void sendConnectionRequest(@RequestBody NewConnectionRequestDTO connectionRequestDTO) {
     User connector = authenticationProvider.getAuthenticatedUser();
 
-    if (connectionRequestDTO.connectorUsername() == null) {
-      throw new BadRequestException("connectorUsername is required");
+    if (connectionRequestDTO.connecteeUsername() == null) {
+      throw new BadRequestException("connecteeUsername is required");
     }
-    if (connectionRequestDTO.connectorUsername().isBlank()) {
-      throw new BadRequestException("connectorUsername can't be blank");
+    if (connectionRequestDTO.connecteeUsername().isBlank()) {
+      throw new BadRequestException("connecteeUsername can't be blank");
     }
 
-    if (connector.getUsername().equals(connectionRequestDTO.connectorUsername())) {
+    if (connector.getUsername().equals(connectionRequestDTO.connecteeUsername())) {
       throw new BadRequestException("can't send connection request to self");
     }
 
     User connectee =
         userService
-            .findByUsername(connectionRequestDTO.connectorUsername())
+            .findByUsername(connectionRequestDTO.connecteeUsername())
             .orElseThrow(
                 () ->
                     new BadRequestException(
-                        "user '" + connectionRequestDTO.connectorUsername() + "' does not exist"));
+                        "user '" + connectionRequestDTO.connecteeUsername() + "' does not exist"));
 
     if (connectionRequestService.openRequestExists(connector, connectee)) {
       throw new BadRequestException("request to user already exists");
@@ -120,7 +152,7 @@ public class ConnectionRequestController {
     }
 
     switch (request.getState()) {
-      case IGNORED, ACCEPTED, REFUSED:
+      case IGNORED, ACCEPTED, REJECTED:
         throw new ForbiddenException(
             "state is illegal: can't update when request is '"
                 + request.getState().name().toLowerCase()

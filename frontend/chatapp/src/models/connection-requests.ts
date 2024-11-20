@@ -1,4 +1,4 @@
-export interface ReceivedConnectionRequest {
+export interface ConnectionRequest {
   id: string;
   senderUsername: string;
   state: string;

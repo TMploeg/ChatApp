@@ -3,14 +3,14 @@ import { Socket } from "./useWebSocket";
 import StompBroker from "../enums/StompBroker";
 import useNotification from "./useNotification";
 import AppContext, { AppContextData } from "../AppContext";
-import { ReceivedConnectionRequest } from "../models/connection-requests";
+import { ConnectionRequest } from "../models/connection-requests";
 
 export default function useConnectionRequests(socket: Socket) {
   const { notifications } = useContext<AppContextData>(AppContext);
   const { getConnectionRequestNotification } = useNotification();
 
   function enableConnectionRequestListener(onNewRequest?: () => void) {
-    socket.subscribe<ReceivedConnectionRequest>(
+    socket.subscribe<ConnectionRequest>(
       StompBroker.CONNECTION_REQUESTS,
       (request) => {
         notifications.add(getConnectionRequestNotification(request));

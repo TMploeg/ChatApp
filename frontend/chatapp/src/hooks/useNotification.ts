@@ -1,10 +1,10 @@
 import { BsFillPeopleFill } from "react-icons/bs";
 import NotificationData from "../models/notification-data";
-import { ReceivedConnectionRequest } from "../models/connection-requests";
+import { ConnectionRequest } from "../models/connection-requests";
 
 export default function useNotification() {
   function getConnectionRequestNotification(
-    request: ReceivedConnectionRequest
+    request: ConnectionRequest
   ): NotificationData {
     return {
       id: request.id,

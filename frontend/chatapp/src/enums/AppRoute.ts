@@ -4,6 +4,7 @@ enum AppRoute {
   LOGIN = "/login",
   REGISTER = "/register",
   CONNECTIONS = "/connections",
+  CONNECTION_REQUESTS = "/connection-requests",
   ANY = "/*",
 }
 

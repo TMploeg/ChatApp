@@ -1,5 +1,6 @@
 package com.tmploeg.chatapp.connectionrequests;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -22,8 +23,21 @@ public interface ConnectionRequestRepository extends JpaRepository<ConnectionReq
   Optional<ConnectionRequest> getRequestByIdForUser(
       @Param("id") UUID id, @Param("username") String username);
 
-  Set<ConnectionRequest> findByConnectee_username(String username);
+  Set<ConnectionRequest> findByConnectee_username(String connecteeUsername);
 
-  Set<ConnectionRequest> findByConnectee_usernameAndState(
-      String username, ConnectionRequestState state);
+  Set<ConnectionRequest> findByConnector_username(String connectorUsername);
+
+  Set<ConnectionRequest> findByConnectee_usernameOrConnectorUsername(
+      String connecteeUsername, String connectorUsername);
+
+  Set<ConnectionRequest> findByConnectee_usernameAndStateIn(
+      String connecteeUsername, Collection<ConnectionRequestState> states);
+
+  Set<ConnectionRequest> findByConnector_usernameAndStateIn(
+      String connectorUsername, Collection<ConnectionRequestState> states);
+
+  Set<ConnectionRequest> findByConnectee_usernameOrConnectorUsernameAndStateIn(
+      String connecteeUsername,
+      String connectorUsername,
+      Collection<ConnectionRequestState> states);
 }

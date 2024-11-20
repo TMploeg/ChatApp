@@ -5,9 +5,9 @@ import java.util.Optional;
 public enum ConnectionRequestState {
   SEND,
   SEEN,
+  REJECTED,
   IGNORED,
-  ACCEPTED,
-  REFUSED;
+  ACCEPTED;
 
   public static Optional<ConnectionRequestState> tryParse(String rawValue) {
     if (rawValue == null) {
