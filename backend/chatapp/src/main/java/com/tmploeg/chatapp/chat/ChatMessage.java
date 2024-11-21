@@ -1,5 +1,6 @@
 package com.tmploeg.chatapp.chat;
 
+import com.tmploeg.chatapp.chat.chatgroup.ChatGroup;
 import com.tmploeg.chatapp.users.User;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -21,6 +22,8 @@ public class ChatMessage {
 
   @Temporal(TemporalType.TIMESTAMP)
   private LocalDateTime sendAt;
+
+  @ManyToOne private ChatGroup group;
 
   public ChatMessage(String content, User sender, LocalDateTime sendAt) {
     this.content = content;
