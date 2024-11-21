@@ -3,7 +3,6 @@ package com.tmploeg.chatapp.connectionrequests;
 import com.tmploeg.chatapp.ApiRoutes;
 import com.tmploeg.chatapp.connectionrequests.dtos.ConnectionRequestDTO;
 import com.tmploeg.chatapp.connectionrequests.dtos.NewConnectionRequestDTO;
-import com.tmploeg.chatapp.connectionrequests.dtos.ReceivedConnectionRequestDTO;
 import com.tmploeg.chatapp.connectionrequests.dtos.UpdateConnectionRequestDTO;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
 import com.tmploeg.chatapp.exceptions.ForbiddenException;
@@ -30,7 +29,7 @@ public class ConnectionRequestController {
   private final AuthenticationProvider authenticationProvider;
 
   @GetMapping
-  public List<ReceivedConnectionRequestDTO> getConnectionRequests(
+  public List<ConnectionRequestDTO> getConnectionRequests(
       @RequestParam(name = "state", required = false) String[] states,
       @RequestParam(name = "direction", required = false) String direction) {
     User user = authenticationProvider.getAuthenticatedUser();
@@ -39,14 +38,14 @@ public class ConnectionRequestController {
 
     if (states == null || states.length == 0) {
       return connectionRequestService.getRequestsByUser(user, parsedDirection).stream()
-          .map(ReceivedConnectionRequestDTO::from)
+          .map(ConnectionRequestDTO::from)
           .toList();
     }
 
     return connectionRequestService
         .getRequestsByUser(user, parseStates(states), parsedDirection)
         .stream()
-        .map(ReceivedConnectionRequestDTO::from)
+        .map(ConnectionRequestDTO::from)
         .toList();
   }
 
@@ -108,7 +107,7 @@ public class ConnectionRequestController {
     messagingService.sendToUser(
         connectee,
         StompBroker.CONNECTION_REQUESTS,
-        new ReceivedConnectionRequestDTO(
+        new ConnectionRequestDTO(
             request.getId(), request.getConnector().getUsername(), request.getState().toString()));
   }
 
@@ -168,11 +167,12 @@ public class ConnectionRequestController {
 
     request.setState(newState);
 
-    if (!newState.equals(ConnectionRequestState.IGNORED)) {
+    if (newState.equals(ConnectionRequestState.ACCEPTED)
+        || newState.equals(ConnectionRequestState.REJECTED)) {
       messagingService.sendToUser(
           request.getConnector(),
           StompBroker.CONNECTION_REQUESTS,
-          new ConnectionRequestDTO(request.getConnectee().getUsername(), newState));
+          ConnectionRequestDTO.from(request));
     }
   }
 }

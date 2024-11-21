@@ -7,4 +7,5 @@ export default interface NotificationData {
   title: string;
   text?: string;
   variant?: Variant;
+  onClick?: () => void;
 }

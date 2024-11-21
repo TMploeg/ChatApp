@@ -10,16 +10,11 @@ import Connection from "../../models/connection";
 import { ClipLoader } from "react-spinners";
 import { BsPersonFill } from "react-icons/bs";
 import ApiRoute from "../../enums/ApiRoute";
+import SendConnectionRequestModal from "./send-connection-request-modal/SendConnectionRequestModal";
 
-interface Props {
-  hasNewRequests?: boolean;
-  onNewRequestsChecked?: () => void;
-}
-export default function ConnectionsPage({
-  hasNewRequests,
-  onNewRequestsChecked,
-}: Props) {
+export default function ConnectionsPage() {
   const [connections, setConnections] = useState<Connection[]>();
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const navigate = useAppNavigate();
 
@@ -35,15 +30,14 @@ export default function ConnectionsPage({
         <div className="connection-requests-button-container">
           <Button
             variant="outline-primary"
-            onClick={() => {
-              onNewRequestsChecked?.();
-              navigate(AppRoute.CONNECTION_REQUESTS);
-            }}
+            onClick={() => navigate(AppRoute.CONNECTION_REQUESTS)}
           >
             Connection Requests
           </Button>
-          {hasNewRequests && <BadgeNotification />}
         </div>
+        <Button variant="primary" onClick={() => setModalVisible(true)}>
+          Add User
+        </Button>
       </PageTitle>
       {connections !== undefined ? (
         <div className="connections-container">
@@ -57,6 +51,10 @@ export default function ConnectionsPage({
       ) : (
         <ClipLoader />
       )}
+      <SendConnectionRequestModal
+        show={modalVisible}
+        onHide={() => setModalVisible(false)}
+      />
     </div>
   );
 }

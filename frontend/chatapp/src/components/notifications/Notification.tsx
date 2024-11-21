@@ -7,8 +7,9 @@ const NOTIFICATION_AUTOHIDE_DELAY: number = 8000;
 
 interface Props {
   notification: NotificationData;
+  onClick?: () => void;
 }
-export default function Notification({ notification }: Props) {
+export default function Notification({ notification, onClick }: Props) {
   const [visible, setVisible] = useState<boolean>(false);
 
   useEffect(() => setVisible(true), []);
@@ -20,6 +21,13 @@ export default function Notification({ notification }: Props) {
       autohide
       delay={NOTIFICATION_AUTOHIDE_DELAY}
       bg={notification.variant ?? "primary"}
+      onClick={() => {
+        if (onClick) {
+          onClick();
+          setVisible(false);
+        }
+      }}
+      className={getNotificationClasses().join(" ")}
     >
       <Toast.Header>
         <div className="notification-header">
@@ -38,4 +46,14 @@ export default function Notification({ notification }: Props) {
       )}
     </Toast>
   );
+
+  function getNotificationClasses(): string[] {
+    const classes: string[] = ["notification"];
+
+    if (onClick) {
+      classes.push("clickable");
+    }
+
+    return classes;
+  }
 }

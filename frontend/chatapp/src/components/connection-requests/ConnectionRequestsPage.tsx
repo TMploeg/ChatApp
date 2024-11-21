@@ -122,9 +122,7 @@ function RequestView({ request, onRequestInteraction }: RequestViewProps) {
         <BsPersonFill size={50} />
       </div>
       <div>
-        <h3 className="connection-request-username">
-          {request.senderUsername}
-        </h3>
+        <h3 className="connection-request-username">{request.username}</h3>
         <div className="connection-request-buttons">
           <Button
             variant="outline-success"

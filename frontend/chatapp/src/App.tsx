@@ -24,7 +24,6 @@ import AppContext, { AppContextData } from "./AppContext";
 import NotificationData from "./models/notification-data";
 import ConnectionsPage from "./components/connections/ConnectionsPage";
 import ConnectionRequestsPage from "./components/connection-requests/ConnectionRequestsPage";
-import AlertData from "./models/alert-data";
 
 const DEBUG_ENABLED: boolean = false;
 const MAX_NOTIFICATIONS: number = 5;
@@ -34,8 +33,6 @@ function App() {
 
   const [connected, setConnected] = useState<boolean>(false);
   const [loggedIn, setLoggedIn] = useState<boolean>(!!getToken());
-  const [hasNewConnectionRequests, setHasNewConnectionRequests] =
-    useState<boolean>(false);
 
   const socket = useWebSocket();
 
@@ -78,11 +75,7 @@ function App() {
       <div className="app">
         {loggedIn && (
           <div className="app-menu">
-            <NavMenu
-              notifications={{
-                connections: hasNewConnectionRequests,
-              }}
-            />
+            <NavMenu />
           </div>
         )}
         <div className="app-content">{getRoutes()}</div>
@@ -90,7 +83,11 @@ function App() {
       <ToastContainer className="notification-container" position="bottom-end">
         {notificationContext.data &&
           notificationContext.data.map((notification) => (
-            <Notification key={notification.id} notification={notification} />
+            <Notification
+              key={notification.id}
+              notification={notification}
+              onClick={notification.onClick}
+            />
           ))}
       </ToastContainer>
     </div>
@@ -114,17 +111,7 @@ function App() {
                 </LoadingPage>
               }
             />
-            <Route
-              path={AppRoute.CONNECTIONS}
-              element={
-                <ConnectionsPage
-                  hasNewRequests={hasNewConnectionRequests}
-                  onNewRequestsChecked={() =>
-                    setHasNewConnectionRequests(false)
-                  }
-                />
-              }
-            />
+            <Route path={AppRoute.CONNECTIONS} element={<ConnectionsPage />} />
             <Route
               path={AppRoute.CONNECTION_REQUESTS}
               element={<ConnectionRequestsPage />}
@@ -154,7 +141,7 @@ function App() {
   function handleConnected() {
     setConnected(true);
 
-    enableConnectionRequestListener(() => setHasNewConnectionRequests(true));
+    enableConnectionRequestListener();
     checkin();
   }
 

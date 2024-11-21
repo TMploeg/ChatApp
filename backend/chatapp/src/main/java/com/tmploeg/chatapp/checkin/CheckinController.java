@@ -4,7 +4,7 @@ import com.tmploeg.chatapp.ApiRoutes;
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequestDirection;
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequestService;
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequestState;
-import com.tmploeg.chatapp.connectionrequests.dtos.ReceivedConnectionRequestDTO;
+import com.tmploeg.chatapp.connectionrequests.dtos.ConnectionRequestDTO;
 import com.tmploeg.chatapp.security.AuthenticationProvider;
 import com.tmploeg.chatapp.users.User;
 import java.util.List;
@@ -26,12 +26,12 @@ public class CheckinController {
   public CheckinDTO checkin() {
     User user = authenticationProvider.getAuthenticatedUser();
 
-    List<ReceivedConnectionRequestDTO> newRequests =
+    List<ConnectionRequestDTO> newRequests =
         connectionRequestService
             .getRequestsByUser(
                 user, List.of(ConnectionRequestState.SEND), ConnectionRequestDirection.RECEIVED)
             .stream()
-            .map(ReceivedConnectionRequestDTO::from)
+            .map(ConnectionRequestDTO::from)
             .toList();
 
     return new CheckinDTO(newRequests);
