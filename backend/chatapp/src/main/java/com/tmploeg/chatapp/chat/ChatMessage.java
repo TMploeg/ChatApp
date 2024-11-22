@@ -25,9 +25,10 @@ public class ChatMessage {
 
   @ManyToOne private ChatGroup group;
 
-  public ChatMessage(String content, User sender, LocalDateTime sendAt) {
+  public ChatMessage(String content, User sender, LocalDateTime sendAt, ChatGroup group) {
     this.content = content;
     this.sender = sender;
     this.sendAt = sendAt;
+    this.group = group;
   }
 }

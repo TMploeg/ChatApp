@@ -1,25 +1,49 @@
 import { createContext } from "react";
 import NotificationData from "./models/notification-data";
+import { Message } from "./models";
 
-export interface AppContextData {
-  notifications: CollectionContextData<NotificationData>;
-}
-interface CollectionContextData<TData> {
-  data?: TData[];
-  add: (notification: TData) => void;
-  init: () => void;
-  clear?: () => void;
-}
+const AppContext = createContext<AppContextData>(getDefaultContextData());
 
-const AppContext = createContext<AppContextData>({
-  notifications: {
-    add: contextNotSetError,
-    init: contextNotSetError,
-  },
-});
+export default AppContext;
+
+function getDefaultContextData(): AppContextData {
+  return {
+    notifications: {
+      data: [],
+      add: contextNotSetError,
+    },
+    subscriptions: {
+      subscribeToChatGroup: () => {
+        contextNotSetError();
+        return {
+          unsubscribe: contextNotSetError,
+        };
+      },
+    },
+  };
+}
 
 function contextNotSetError() {
   console.error("context not set");
 }
 
-export default AppContext;
+interface AppContextData {
+  notifications: CollectionContextData<NotificationData>;
+  subscriptions: StompSubscriptionContextData;
+}
+
+interface CollectionContextData<TData> {
+  data: TData[];
+  add: (notification: TData) => void;
+}
+
+interface StompSubscriptionContextData {
+  subscribeToChatGroup: (
+    groupId: string,
+    callBack: (message: Message) => void
+  ) => Subscription;
+}
+
+interface Subscription {
+  unsubscribe: () => void;
+}

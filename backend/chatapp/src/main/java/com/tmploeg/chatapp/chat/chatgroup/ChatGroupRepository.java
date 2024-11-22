@@ -11,6 +11,6 @@ public interface ChatGroupRepository extends JpaRepository<ChatGroup, UUID> {
   @Query(
       "SELECT cG FROM ChatGroup cG "
           + "WHERE :user MEMBER OF cG.users "
-          + "AND (SELECT COUNT(*) FROM cG.users) >= 3")
+          + "ORDER BY (SELECT MAX(cM.sendAt) FROM ChatMessage cM WHERE cM.group = cG)")
   Set<ChatGroup> findChatGroupsForUser(@Param("user") User user);
 }

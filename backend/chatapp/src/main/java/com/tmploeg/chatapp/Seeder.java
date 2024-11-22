@@ -40,15 +40,21 @@ public class Seeder implements CommandLineRunner {
   private void seedChatGroups() {
     List<User> users = userRepository.findAll();
 
-    chatGroupRepository.save(new ChatGroup(Set.of(users.get(0), users.get(1), users.get(2))));
-    chatGroupRepository.save(new ChatGroup(Set.of(users.get(0), users.get(3), users.get(4))));
-    chatGroupRepository.save(new ChatGroup(Set.of(users.get(1), users.get(2), users.get(3))));
-    chatGroupRepository.save(new ChatGroup(Set.of(users.get(2), users.get(3), users.get(4))));
-    chatGroupRepository.save(new ChatGroup(Set.of(users.get(0), users.get(2), users.get(4))));
+    chatGroupRepository.save(
+        new ChatGroup("Awesome group 1", Set.of(users.get(0), users.get(3), users.get(4))));
+    chatGroupRepository.save(
+        new ChatGroup("Awesome group 2", Set.of(users.get(0), users.get(1), users.get(2))));
+    chatGroupRepository.save(
+        new ChatGroup("Awesome group 3", Set.of(users.get(1), users.get(2), users.get(3))));
+    chatGroupRepository.save(
+        new ChatGroup("Awesome group 4", Set.of(users.get(2), users.get(3), users.get(4))));
+    chatGroupRepository.save(
+        new ChatGroup("Awesome group 5", Set.of(users.get(0), users.get(2), users.get(4))));
 
     chatGroupRepository.save(new ChatGroup(Set.of(users.get(0), users.get(3))));
     chatGroupRepository.save(new ChatGroup(Set.of(users.get(1), users.get(2))));
     chatGroupRepository.save(
-        new ChatGroup(Set.of(users.get(0), users.get(2), users.get(3), users.get(4))));
+        new ChatGroup(
+            "Awesome group 6", Set.of(users.get(0), users.get(2), users.get(3), users.get(4))));
   }
 }

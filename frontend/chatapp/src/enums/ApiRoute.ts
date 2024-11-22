@@ -8,6 +8,7 @@ export default class ApiRoute {
   public static readonly SINGLE_CONNECTION_REQUEST = (id: string) =>
     new ApiRoute(`${Route.CONNECTION_REQUESTS}/${id}`);
   public static readonly CONNECTIONS = () => new ApiRoute(Route.CONNECTIONS);
+  public static readonly CHAT_GROUPS = () => new ApiRoute(Route.CHAT_GROUPS);
 
   public readonly destination: string;
 
@@ -23,4 +24,5 @@ enum Route {
   CHECKIN = "/checkin",
   CONNECTION_REQUESTS = "/connectionrequests",
   CONNECTIONS = "/connections",
+  CHAT_GROUPS = "/chatgroups",
 }

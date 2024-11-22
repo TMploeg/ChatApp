@@ -9,16 +9,15 @@ import { BsSendFill } from "react-icons/bs";
 import AppRoute from "../../enums/AppRoute";
 import ChatMessage from "./ChatMessage";
 import ChatDateDivider from "./ChatDateDivider";
-import PageTitle from "../page/title/PageTitle";
 
 interface Props {
   messages: Message[];
   onSendMessage: (message: NewMessage) => void;
-  titleText?: string;
 }
-export default function Chat({ messages, onSendMessage, titleText }: Props) {
+export default function Chat({ messages, onSendMessage }: Props) {
   const [username, setUsername] = useState<string>();
   const [newMessage, setNewMessage] = useState<string>("");
+  const [newMessageInput, setNewMessageInput] = useState<HTMLInputElement>();
 
   const { get: getJWT, set: setJWT } = useStorage<JWT>(StorageLocation.JWT);
   const navigate = useAppNavigate();
@@ -38,7 +37,6 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
 
   return (
     <div className="chat-container">
-      {titleText && <PageTitle text={titleText} />}
       <div className="chat-message-container">
         <div className="chat-messages">{getMessageViews()}</div>
         <div className="new-message-input-container">
@@ -47,8 +45,13 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyUp={(e) => handleInputKeyUp(e.key)}
+              ref={(input: HTMLInputElement) => setNewMessageInput(input)}
             />
-            <Button size="lg" onClick={handleSendClicked}>
+            <Button
+              size="lg"
+              onClick={handleSendClicked}
+              disabled={newMessage.length === 0}
+            >
               <BsSendFill />
             </Button>
           </InputGroup>
@@ -58,13 +61,14 @@ export default function Chat({ messages, onSendMessage, titleText }: Props) {
   );
 
   function handleSendClicked() {
-    if (!username) {
+    if (!username || newMessage.length === 0) {
       return;
     }
 
     onSendMessage({ content: newMessage });
 
     setNewMessage("");
+    newMessageInput?.focus();
   }
 
   function handleInputKeyUp(key: string) {

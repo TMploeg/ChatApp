@@ -5,6 +5,6 @@ export default function useAppNavigate() {
   const navigate = useNavigate();
 
   return (route: AppRoute) => {
-    navigate(route);
+    navigate(route.value);
   };
 }

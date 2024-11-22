@@ -1,33 +1,17 @@
 package com.tmploeg.chatapp.messaging;
 
-public enum StompBroker {
-  CHAT,
-  CONNECTION_REQUESTS("/queue");
+import java.util.function.Supplier;
+import lombok.Getter;
 
-  private final String prefix;
+@Getter
+public class StompBroker {
+  public static final StompBroker CHAT = new StompBroker("/queue/chat");
+  public static final StompBroker CONNECTION_REQUESTS =
+      new StompBroker("/queue/connection-requests");
 
-  private StompBroker() {
-    this.prefix = "";
-  }
+  private final String route;
 
-  private StompBroker(String prefix) {
-    this.prefix = prefix;
-  }
-
-  public String getRoute() {
-    return prefix + "/" + name().toLowerCase().replace('_', '-');
-  }
-
-  public static String[] getAllRoutes() {
-    StompBroker[] brokers = StompBroker.values();
-    String[] routes = new String[brokers.length];
-
-    int i = 0;
-    for (StompBroker broker : brokers) {
-      routes[i] = broker.getRoute();
-      i++;
-    }
-
-    return routes;
+  private StompBroker(String route) {
+    this.route = route;
   }
 }

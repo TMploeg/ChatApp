@@ -1,5 +1,5 @@
 enum StompBroker {
-  CHAT = "/chat",
+  CHAT = "/queue/chat",
   CONNECTION_REQUESTS = "/user/queue/connection-requests",
 }
 

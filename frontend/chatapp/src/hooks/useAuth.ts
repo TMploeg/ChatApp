@@ -6,7 +6,7 @@ import useApi from "./useApi";
 import ApiRoute from "../enums/ApiRoute";
 
 export default function useAuth() {
-  const { set: setJWT } = useStorage<JWT>(StorageLocation.JWT);
+  const { get: getJWT, set: setJWT } = useStorage<JWT>(StorageLocation.JWT);
   const { post } = useApi();
 
   function login(loginData: Auth) {
@@ -17,5 +17,9 @@ export default function useAuth() {
     return post<JWT>(ApiRoute.REGISTER(), registerData).then(setJWT);
   }
 
-  return { login, register };
+  function getUsername() {
+    return getJWT()?.username;
+  }
+
+  return { login, register, getUsername };
 }
