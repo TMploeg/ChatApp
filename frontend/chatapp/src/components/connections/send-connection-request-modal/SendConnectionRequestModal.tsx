@@ -1,5 +1,5 @@
 import { Button, Form, Modal } from "react-bootstrap";
-import { useApi } from "../../../hooks";
+import { useAlert, useApi } from "../../../hooks";
 import ApiRoute from "../../../enums/ApiRoute";
 import { useState } from "react";
 
@@ -11,8 +11,9 @@ export default function SendConnectionRequestModal({ show, onHide }: Props) {
   const { post } = useApi();
 
   const [targetUsername, setTargetUsername] = useState<string>("");
-
   const [invalid, setInvalid] = useState<boolean>(false);
+
+  const alert = useAlert();
 
   return (
     <Modal
@@ -75,7 +76,10 @@ export default function SendConnectionRequestModal({ show, onHide }: Props) {
     post<void>(ApiRoute.CONNECTION_REQUESTS(), {
       connecteeUsername: targetUsername,
     })
-      .then(onHide)
+      .then(() => {
+        onHide?.();
+        alert("Connection request send", "success");
+      })
       .catch(showError);
   }
 
