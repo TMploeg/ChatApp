@@ -3,8 +3,6 @@ import LoadingPage from "./components/page/LoadingPage";
 import ChatPage from "./components/chat/ChatPage";
 import AppRoute from "./enums/AppRoute";
 import HomePage from "./components/home/HomePage";
-import ConnectionsPage from "./components/connections/ConnectionsPage";
-import ConnectionRequestsPage from "./components/connection-requests/ConnectionRequestsPage";
 import LoginPage from "./components/auth/login/LoginPage";
 import RegisterPage from "./components/auth/register/RegisterPage";
 
@@ -26,14 +24,6 @@ export default function Routing({ loggedIn, connected, onLogin }: Props) {
                 <ChatPage />
               </LoadingPage>
             }
-          />
-          <Route
-            path={AppRoute.CONNECTIONS.value}
-            element={<ConnectionsPage />}
-          />
-          <Route
-            path={AppRoute.CONNECTION_REQUESTS.value}
-            element={<ConnectionRequestsPage />}
           />
         </>
       ) : (

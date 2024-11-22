@@ -1,0 +1,34 @@
+.connections-backdrop-header {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+}
+
+.connections-container {
+  padding: 8px;
+  padding-top: 16px;
+
+  flex: 1;
+  overflow-y: scroll;
+
+  .connection {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .connection-image {
+      padding: 16px;
+      padding-right: 24px;
+    }
+
+    .connection-username {
+      padding: 12px;
+    }
+  }
+}
+
+.send-connection-request-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

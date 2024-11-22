@@ -1,9 +1,7 @@
-import { BsArrowReturnLeft, BsPersonFill } from "react-icons/bs";
+import { BsPersonFill } from "react-icons/bs";
 import { ConnectionRequest } from "../../models/connection-requests";
-import PageTitle from "../page/title/PageTitle";
-import "./ConnectionRequestsPage.scss";
-import { Button } from "react-bootstrap";
-import { useAlert, useApi, useAppNavigate } from "../../hooks";
+import { Button, Modal } from "react-bootstrap";
+import { useAlert, useApi } from "../../hooks";
 import ConnectionRequestState from "../../enums/ConnectionRequestState";
 import ApiRoute from "../../enums/ApiRoute";
 import { useEffect, useState } from "react";
@@ -11,20 +9,23 @@ import { ClipLoader } from "react-spinners";
 import ConnectionRequestDirection from "../../enums/ConnectionRequestDirection";
 import { Variant } from "react-bootstrap/esm/types";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
-import AppRoute from "../../enums/AppRoute";
+import "./ConnectionRequests.scss";
 
 const VISIBLE_STATES: ConnectionRequestState[] = [
   ConnectionRequestState.SEND,
   ConnectionRequestState.SEEN,
 ];
 
-export default function ConnectionRequestsPage() {
+interface Props {
+  show: boolean;
+  onHide: () => void;
+}
+export default function ConnectionRequests({ show, onHide }: Props) {
   const { get, patch } = useApi();
 
   const [requests, setRequests] = useState<ConnectionRequest[]>();
 
   const alert = useAlert();
-  const navigate = useAppNavigate();
 
   useEffect(() => {
     get<ConnectionRequest[]>(ApiRoute.CONNECTION_REQUESTS(), {
@@ -34,32 +35,28 @@ export default function ConnectionRequestsPage() {
   }, []);
 
   return (
-    <div className="connection-requests-page">
-      <PageTitle text="Connection Requests">
-        <Button
-          variant="outline-primary"
-          size="lg"
-          onClick={() => navigate(AppRoute.CONNECTIONS)}
-        >
-          <BsArrowReturnLeft />
-        </Button>
-      </PageTitle>
-      <div className="connection-requests-container">
-        {requests !== undefined ? (
-          <SeperatedList
-            items={requests}
-            ItemRenderElement={({ item: request }) => (
-              <RequestView
-                request={request}
-                onRequestInteraction={handleRequestInteraction}
-              />
-            )}
-          />
-        ) : (
-          <ClipLoader />
-        )}
-      </div>
-    </div>
+    <Modal show={show} onHide={onHide} fullscreen>
+      <Modal.Header className="connections-backdrop-header" closeButton>
+        <h1>Connection Requests</h1>
+      </Modal.Header>
+      <Modal.Body>
+        <div className="connection-requests-container">
+          {requests !== undefined ? (
+            <SeperatedList
+              items={requests}
+              ItemRenderElement={({ item: request }) => (
+                <RequestView
+                  request={request}
+                  onRequestInteraction={handleRequestInteraction}
+                />
+              )}
+            />
+          ) : (
+            <ClipLoader />
+          )}
+        </div>
+      </Modal.Body>
+    </Modal>
   );
 
   function handleRequestInteraction(

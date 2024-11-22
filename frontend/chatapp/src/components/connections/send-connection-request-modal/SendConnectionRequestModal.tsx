@@ -23,9 +23,15 @@ export default function SendConnectionRequestModal({ show, onHide }: Props) {
       }}
     >
       <Modal.Header closeButton>Add User</Modal.Header>
-      <Modal.Body>
+      <Modal.Body className="send-connection-request-dialog-body">
+        <div>
+          Enter the username of the person you want to connect with to send a
+          connection request
+        </div>
         <Form.Group>
-          <Form.Label>Username</Form.Label>
+          <Form.Label>
+            <strong>Username</strong>
+          </Form.Label>
           <Form.Control
             type="text"
             value={targetUsername}

@@ -25,19 +25,23 @@ export default function ChatMenu() {
   return (
     <div className="chat-menu">
       {chatGroups ? (
-        <Nav>
-          {chatGroups.map((group) => (
-            <Nav.Item
-              key={group.id}
-              onClick={() => navigate(AppRoute.CHAT(group.id))}
-            >
-              <GroupIcon group={group} size={NAV_ICON_SIZE} />
-              <div className="nav-item-text">
-                <span>{getGroupTitle(group)}</span>
-              </div>
-            </Nav.Item>
-          ))}
-        </Nav>
+        chatGroups.length > 0 ? (
+          <Nav>
+            {chatGroups.map((group) => (
+              <Nav.Item
+                key={group.id}
+                onClick={() => navigate(AppRoute.CHAT(group.id))}
+              >
+                <GroupIcon group={group} size={NAV_ICON_SIZE} />
+                <div className="nav-item-text">
+                  <span>{getGroupTitle(group)}</span>
+                </div>
+              </Nav.Item>
+            ))}
+          </Nav>
+        ) : (
+          <div>No chat groups found {":("}</div>
+        )
       ) : (
         <ClipLoader />
       )}
