@@ -44,8 +44,6 @@ export default function AppContainer() {
       onConnect: handleConnected,
       onDisconnect: handleDisconnected,
     });
-
-    return () => socket.disconnect();
   }, [loggedIn]);
 
   return (
