@@ -1,7 +1,7 @@
 import { Button, Modal } from "react-bootstrap";
 import { useApi } from "../../hooks";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Connection from "../../models/connection";
 import { ClipLoader } from "react-spinners";
 import ApiRoute from "../../enums/ApiRoute";
@@ -9,6 +9,8 @@ import SendConnectionRequestModal from "./send-connection-request-modal/SendConn
 import "./Connections.scss";
 import ConnectionView from "./ConnectionView";
 import { BsPersonPlusFill } from "react-icons/bs";
+import AppContext from "../../AppContext";
+import ConnectionRequestState from "../../enums/ConnectionRequestState";
 
 interface Props {
   show: boolean;
@@ -21,8 +23,24 @@ export default function Connections({ show, onHide }: Props) {
 
   const { get } = useApi();
 
+  const { subscriptions } = useContext(AppContext);
+
   useEffect(() => {
     get<Connection[]>(ApiRoute.CONNECTIONS()).then(setConnections);
+
+    const subscription = subscriptions.connectionRequests.subscribe(
+      "Connections",
+      (request) => {
+        console.log("NEW REQUEST", request);
+        if (request.state === ConnectionRequestState.ACCEPTED) {
+          handleNewConnection({
+            username: request.username,
+          });
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -60,4 +78,11 @@ export default function Connections({ show, onHide }: Props) {
       </Modal.Body>
     </Modal>
   );
+
+  function handleNewConnection(connection: Connection) {
+    setConnections((connections) => {
+      connections?.unshift(connection);
+      return connections;
+    });
+  }
 }

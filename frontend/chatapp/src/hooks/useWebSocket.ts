@@ -5,9 +5,6 @@ import {
   StompSubscription,
 } from "@stomp/stompjs";
 import { useState } from "react";
-import useStorage from "./useStorage";
-import { StorageLocation } from "../enums/StorageLocation";
-import { JWT } from "../models/auth";
 import StompBroker from "../enums/StompBroker";
 import useToken from "./useToken";
 
@@ -19,7 +16,6 @@ export interface WebSocketConfig {
   onDisconnect?: () => void;
 }
 export default function useWebSocket(): Socket {
-  const { get: getJWT } = useStorage<JWT>(StorageLocation.JWT);
   const [stompClient] = useState<Client>(getClient());
   const getToken = useToken();
 

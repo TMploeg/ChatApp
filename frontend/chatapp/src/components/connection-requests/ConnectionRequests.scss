@@ -1,39 +1,31 @@
-.connection-requests-page {
+.connection-requests-container {
+  padding: 8px;
+  padding-top: 16px;
+
   flex: 1;
+  overflow-y: scroll;
 
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  .connection-request {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 
-  .connection-requests-container {
-    padding: 8px;
-    padding-top: 16px;
+    .connection-request-image {
+      padding: 16px;
+      padding-right: 24px;
+    }
 
-    flex: 1;
-    overflow-y: scroll;
+    .connection-request-username {
+      padding: 12px;
+    }
 
-    .connection-request {
+    .connection-request-buttons {
       display: flex;
       flex-direction: row;
-      align-items: center;
+      gap: 12px;
 
-      .connection-request-image {
-        padding: 16px;
-        padding-right: 24px;
-      }
-
-      .connection-request-username {
-        padding: 12px;
-      }
-
-      .connection-request-buttons {
-        display: flex;
-        flex-direction: row;
-        gap: 12px;
-
-        button {
-          font-weight: bold;
-        }
+      button {
+        font-weight: bold;
       }
     }
   }

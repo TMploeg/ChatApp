@@ -1,6 +1,7 @@
 import { createContext } from "react";
 import NotificationData from "./models/notification-data";
 import { Message } from "./models";
+import { ConnectionRequest } from "./models/connection-request";
 
 const AppContext = createContext<AppContextData>(getDefaultContextData());
 
@@ -13,11 +14,21 @@ function getDefaultContextData(): AppContextData {
       add: contextNotSetError,
     },
     subscriptions: {
-      subscribeToChatGroup: () => {
-        contextNotSetError();
-        return {
-          unsubscribe: contextNotSetError,
-        };
+      chatGroup: {
+        subscribe: () => {
+          contextNotSetError();
+          return {
+            unsubscribe: contextNotSetError,
+          };
+        },
+      },
+      connectionRequests: {
+        subscribe: () => {
+          contextNotSetError();
+          return {
+            unsubscribe: contextNotSetError,
+          };
+        },
       },
     },
   };
@@ -38,10 +49,12 @@ interface CollectionContextData<TData> {
 }
 
 interface StompSubscriptionContextData {
-  subscribeToChatGroup: (
-    groupId: string,
-    callBack: (message: Message) => void
-  ) => Subscription;
+  chatGroup: SubscribeFunc<Message>;
+  connectionRequests: SubscribeFunc<ConnectionRequest>;
+}
+
+interface SubscribeFunc<TData> {
+  subscribe: (id: string, callback: (data: TData) => void) => Subscription;
 }
 
 interface Subscription {

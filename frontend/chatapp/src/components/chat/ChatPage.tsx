@@ -23,7 +23,7 @@ export default function ChatPage() {
   }
 
   useEffect(() => {
-    const subscription = subscriptions.subscribeToChatGroup(
+    const subscription = subscriptions.chatGroup.subscribe(
       id,
       handleNewMessage
     );

@@ -1,15 +1,16 @@
 import { BsPersonFill } from "react-icons/bs";
-import { ConnectionRequest } from "../../models/connection-requests";
+import { ConnectionRequest } from "../../models/connection-request";
 import { Button, Modal } from "react-bootstrap";
 import { useAlert, useApi } from "../../hooks";
 import ConnectionRequestState from "../../enums/ConnectionRequestState";
 import ApiRoute from "../../enums/ApiRoute";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
 import ConnectionRequestDirection from "../../enums/ConnectionRequestDirection";
 import { Variant } from "react-bootstrap/esm/types";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
 import "./ConnectionRequests.scss";
+import AppContext from "../../AppContext";
 
 const VISIBLE_STATES: ConnectionRequestState[] = [
   ConnectionRequestState.SEND,
@@ -27,11 +28,31 @@ export default function ConnectionRequests({ show, onHide }: Props) {
 
   const alert = useAlert();
 
+  const { subscriptions } = useContext(AppContext);
+
   useEffect(() => {
     get<ConnectionRequest[]>(ApiRoute.CONNECTION_REQUESTS(), {
       state: VISIBLE_STATES.join(","),
       direction: ConnectionRequestDirection.RECEIVED,
     }).then(setRequests);
+
+    const subscription = subscriptions.connectionRequests.subscribe(
+      "ConnectionRequests",
+      (request) => {
+        if (
+          request.state.toUpperCase() !==
+          ConnectionRequestState.SEND.toUpperCase()
+        ) {
+          return;
+        }
+
+        handleNewConnectionRequest(request);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -102,6 +123,13 @@ export default function ConnectionRequests({ show, onHide }: Props) {
     }
 
     alert(data.message, data.variant);
+  }
+
+  function handleNewConnectionRequest(request: ConnectionRequest) {
+    setRequests((requests) => {
+      requests?.unshift(request);
+      return requests;
+    });
   }
 }
 

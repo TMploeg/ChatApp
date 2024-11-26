@@ -6,7 +6,7 @@ import { StorageLocation } from "./enums/StorageLocation";
 import useNotification from "./hooks/useNotification";
 import AppContext from "./AppContext";
 import StompBroker from "./enums/StompBroker";
-import { ConnectionRequest } from "./models/connection-requests";
+import { ConnectionRequest } from "./models/connection-request";
 import App from "./App";
 
 const DEBUG_ENABLED: boolean = false;
@@ -18,11 +18,14 @@ export default function AppContainer() {
   const [connected, setConnected] = useState<boolean>(false);
   const [loggedIn, setLoggedIn] = useState<boolean>(!!getToken());
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
-  const [chatSubscriptionMapping, setChatSubscriptionMapping] =
-    useState<ChatSubscriptionMapping>({});
+  const [subscriptionMapping, setSubscriptionMapping] =
+    useState<SubscriptionMapping>({
+      CHAT: {},
+      CONNECTION_REQUESTS: {},
+    });
 
   const socket = useWebSocket();
-  const checkin = useCheckin();
+  const getCheckinData = useCheckin();
 
   const { getConnectionRequestNotification } = useNotification();
 
@@ -53,21 +56,17 @@ export default function AppContainer() {
           add: handleNewNotification,
         },
         subscriptions: {
-          subscribeToChatGroup: (groupId, callback) => {
-            setChatSubscriptionMapping((mapping) => {
-              mapping[groupId] = callback;
-              return mapping;
-            });
-            return {
-              unsubscribe: () =>
-                setChatSubscriptionMapping((mapping) => {
-                  if (mapping[groupId]) {
-                    delete mapping[groupId];
-                  }
-
-                  return mapping;
-                }),
-            };
+          chatGroup: {
+            subscribe: (id, callback) =>
+              addSubscriptionMapping(id, callback, SubscriptionName.CHAT),
+          },
+          connectionRequests: {
+            subscribe: (id, callback) =>
+              addSubscriptionMapping(
+                id,
+                callback,
+                SubscriptionName.CONNECTION_REQUESTS
+              ),
           },
         },
       }}
@@ -84,6 +83,81 @@ export default function AppContainer() {
     </AppContext.Provider>
   );
 
+  function handleConnected() {
+    setConnected(true);
+
+    enableChatMessageListener();
+    enableConnectionRequestListener();
+    getCheckinData().then((data) =>
+      setNotifications(
+        data.newConnectionRequests.map(getConnectionRequestNotification)
+      )
+    );
+  }
+
+  function handleDisconnected() {
+    setConnected(false);
+
+    clearNotifications();
+  }
+
+  function clearNotifications() {
+    setNotifications([]);
+  }
+
+  function enableChatMessageListener() {
+    socket.subscribe<Message>(StompBroker.CHAT, (message) =>
+      subscriptionMapping.CHAT[message.groupId]?.(message)
+    );
+  }
+
+  function enableConnectionRequestListener() {
+    socket.subscribe<ConnectionRequest>(
+      StompBroker.CONNECTION_REQUESTS,
+      (request) => {
+        Object.values(subscriptionMapping.CONNECTION_REQUESTS).forEach(
+          (subscription) => subscription(request)
+        );
+        handleNewNotification(getConnectionRequestNotification(request));
+      }
+    );
+  }
+
+  function addSubscriptionMapping<TData>(
+    id: string,
+    callback: (data: TData) => void,
+    subscriptionName: SubscriptionName
+  ) {
+    setSubscriptionMapping((mapping) => {
+      const subscription = mapping[subscriptionName];
+      if (subscription[id]) {
+        console.error("duplicate subscription mapping");
+      }
+      subscription[id] = callback;
+
+      const newMapping = { ...mapping };
+      newMapping[subscriptionName] = subscription;
+      return newMapping;
+    });
+
+    return {
+      unsubscribe: () =>
+        setSubscriptionMapping((mapping) => {
+          const subscription = mapping[subscriptionName];
+          if (!subscription[id]) {
+            return mapping;
+          }
+
+          delete subscription[id];
+
+          const newMapping = { ...mapping };
+          mapping[subscriptionName] = subscription;
+
+          return newMapping;
+        }),
+    };
+  }
+
   function handleNewNotification(notification: NotificationData) {
     setNotifications((notifications) => {
       const remainingNotificationSlots: number =
@@ -99,38 +173,14 @@ export default function AppContainer() {
       ];
     });
   }
+}
 
-  function handleConnected() {
-    setConnected(true);
+type SubscriptionMapping = Record<
+  keyof typeof SubscriptionName,
+  Record<string, (data: any) => void>
+>;
 
-    enableChatMessageListener();
-    enableConnectionRequestListener();
-    checkin();
-  }
-
-  function handleDisconnected() {
-    setConnected(false);
-
-    clearNotifications();
-  }
-
-  function clearNotifications() {
-    setNotifications([]);
-  }
-
-  function enableChatMessageListener() {
-    socket.subscribe<Message>(StompBroker.CHAT, (message) =>
-      chatSubscriptionMapping[message.groupId]?.(message)
-    );
-  }
-
-  function enableConnectionRequestListener() {
-    socket.subscribe<ConnectionRequest>(
-      StompBroker.CONNECTION_REQUESTS,
-      (request) =>
-        handleNewNotification(getConnectionRequestNotification(request))
-    );
-  }
-
-  type ChatSubscriptionMapping = Record<string, (data: Message) => void>;
+enum SubscriptionName {
+  CHAT = "CHAT",
+  CONNECTION_REQUESTS = "CONNECTION_REQUESTS",
 }
