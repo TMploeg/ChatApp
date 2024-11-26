@@ -105,10 +105,7 @@ public class ConnectionRequestController {
     ConnectionRequest request = connectionRequestService.save(connector, connectee);
 
     messagingService.sendToUser(
-        connectee,
-        StompBroker.CONNECTION_REQUESTS,
-        new ConnectionRequestDTO(
-            request.getId(), request.getConnector().getUsername(), request.getState().toString()));
+        connectee, StompBroker.CONNECTION_REQUESTS, ConnectionRequestDTO.from(request));
   }
 
   @PatchMapping("{id}")
@@ -172,7 +169,7 @@ public class ConnectionRequestController {
       messagingService.sendToUser(
           request.getConnector(),
           StompBroker.CONNECTION_REQUESTS,
-          ConnectionRequestDTO.from(request));
+          ConnectionRequestDTO.completedRequestFrom(request));
     }
   }
 }

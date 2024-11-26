@@ -32,7 +32,10 @@ export default function Connections({ show, onHide }: Props) {
       "Connections",
       (request) => {
         console.log("NEW REQUEST", request);
-        if (request.state === ConnectionRequestState.ACCEPTED) {
+        if (
+          request.state.toUpperCase() ===
+          ConnectionRequestState.ACCEPTED.toUpperCase()
+        ) {
           handleNewConnection({
             username: request.username,
           });

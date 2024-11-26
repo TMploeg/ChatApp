@@ -8,4 +8,9 @@ public record ConnectionRequestDTO(UUID id, String username, String state) {
     return new ConnectionRequestDTO(
         request.getId(), request.getConnector().getUsername(), request.getState().toString());
   }
+
+  public static ConnectionRequestDTO completedRequestFrom(ConnectionRequest request) {
+    return new ConnectionRequestDTO(
+        request.getId(), request.getConnectee().getUsername(), request.getState().toString());
+  }
 }
