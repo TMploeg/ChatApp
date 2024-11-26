@@ -77,6 +77,11 @@ public class ChatGroupController {
             ? chatGroupService.create(groupUsers)
             : chatGroupService.create(groupUsers, newChatGroupDTO.name());
 
+    if (newChatGroupDTO.mutable()) {
+      group.setMutable(true);
+      chatGroupService.update(group);
+    }
+
     URI uri = ucb.path("/api/v1/chatgroups/{id}").buildAndExpand(group.getId().toString()).toUri();
 
     return ResponseEntity.created(uri).body(ChatGroupDTO.from(group));

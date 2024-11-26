@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.util.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @NoArgsConstructor
@@ -19,6 +20,8 @@ public class ChatGroup {
   @Getter
   @ManyToMany(fetch = FetchType.EAGER)
   private Set<User> users = new HashSet<>();
+
+  @Getter @Setter private boolean mutable = false;
 
   public ChatGroup(Set<User> users) {
     this.users = users;

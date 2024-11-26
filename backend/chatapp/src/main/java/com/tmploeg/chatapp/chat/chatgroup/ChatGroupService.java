@@ -27,4 +27,8 @@ public class ChatGroupService {
   public ChatGroup create(Set<User> users, String name) {
     return chatGroupRepository.save(new ChatGroup(name, users));
   }
+
+  public void update(ChatGroup chatGroup) {
+    chatGroupRepository.save(chatGroup);
+  }
 }

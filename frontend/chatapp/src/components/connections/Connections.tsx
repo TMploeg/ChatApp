@@ -28,7 +28,7 @@ export default function Connections({
     useState<boolean>(false);
 
   const { get } = useApi();
-  const { create } = useChatGroups();
+  const { createPrivateGroup } = useChatGroups();
 
   const { subscriptions } = useContext(AppContext);
 
@@ -104,7 +104,7 @@ export default function Connections({
 
   function handleConnectionClicked(connection: Connection) {
     onHide();
-    create([connection.username]).then((createdGroup) =>
+    createPrivateGroup(connection.username).then((createdGroup) =>
       navigate(AppRoute.CHAT(createdGroup.id))
     );
   }
