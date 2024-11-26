@@ -15,8 +15,13 @@ import ConnectionRequestState from "../../enums/ConnectionRequestState";
 interface Props {
   show: boolean;
   onHide: () => void;
+  newConnectionStream?: NewConnectionStream;
 }
-export default function Connections({ show, onHide }: Props) {
+export default function Connections({
+  show,
+  onHide,
+  newConnectionStream,
+}: Props) {
   const [connections, setConnections] = useState<Connection[]>();
   const [addUserModalVisible, setAddUserModalVisible] =
     useState<boolean>(false);
@@ -31,7 +36,6 @@ export default function Connections({ show, onHide }: Props) {
     const subscription = subscriptions.connectionRequests.subscribe(
       "Connections",
       (request) => {
-        console.log("NEW REQUEST", request);
         if (
           request.state.toUpperCase() ===
           ConnectionRequestState.ACCEPTED.toUpperCase()
@@ -42,6 +46,8 @@ export default function Connections({ show, onHide }: Props) {
         }
       }
     );
+
+    newConnectionStream?.subscribe(handleNewConnection);
 
     return () => subscription.unsubscribe();
   }, []);
@@ -88,4 +94,8 @@ export default function Connections({ show, onHide }: Props) {
       return connections;
     });
   }
+}
+
+export interface NewConnectionStream {
+  subscribe(callback: (connection: Connection) => void): void;
 }

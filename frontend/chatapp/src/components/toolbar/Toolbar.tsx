@@ -3,9 +3,10 @@ import "./Toolbar.scss";
 import { BsBoxArrowRight, BsEnvelopeFill, BsPeopleFill } from "react-icons/bs";
 import { useAppNavigate } from "../../hooks";
 import AppRoute from "../../enums/AppRoute";
-import Connections from "../connections/Connections";
+import Connections, { NewConnectionStream } from "../connections/Connections";
 import { useState } from "react";
 import ConnectionRequests from "../connection-requests/ConnectionRequests";
+import Connection from "../../models/connection";
 
 interface Props {
   title?: string;
@@ -17,6 +18,9 @@ export default function Toolbar({ title, loggedIn, onLogout }: Props) {
 
   const [backdropVisiblity, setBackdropVisiblity] = useState<BackdropVisiblity>(
     { connections: false, connectionRequests: false }
+  );
+  const [acceptedConnectionStream] = useState<AcceptedConnectionStream>(
+    new AcceptedConnectionStream()
   );
 
   return (
@@ -85,6 +89,7 @@ export default function Toolbar({ title, loggedIn, onLogout }: Props) {
                   connections: false,
                 }))
               }
+              newConnectionStream={acceptedConnectionStream}
             />
             <ConnectionRequests
               show={backdropVisiblity.connectionRequests}
@@ -93,6 +98,11 @@ export default function Toolbar({ title, loggedIn, onLogout }: Props) {
                   ...visibility,
                   connectionRequests: false,
                 }))
+              }
+              onRequestAccepted={(request) =>
+                acceptedConnectionStream.addConnection({
+                  username: request.username,
+                })
               }
             />
           </>
@@ -105,4 +115,16 @@ export default function Toolbar({ title, loggedIn, onLogout }: Props) {
 interface BackdropVisiblity {
   connections: boolean;
   connectionRequests: boolean;
+}
+
+class AcceptedConnectionStream implements NewConnectionStream {
+  private readonly onNewConnection: ((connection: Connection) => void)[] = [];
+
+  subscribe(callback: (connection: Connection) => void): void {
+    this.onNewConnection.push(callback);
+  }
+
+  addConnection(connection: Connection) {
+    this.onNewConnection.forEach((callback) => callback(connection));
+  }
 }

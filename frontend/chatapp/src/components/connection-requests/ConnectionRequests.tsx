@@ -1,7 +1,7 @@
 import { BsPersonFill } from "react-icons/bs";
 import { ConnectionRequest } from "../../models/connection-request";
 import { Button, Modal } from "react-bootstrap";
-import { useAlert, useApi } from "../../hooks";
+import { useAlert, useApi, useConnectionRequests } from "../../hooks";
 import ConnectionRequestState from "../../enums/ConnectionRequestState";
 import ApiRoute from "../../enums/ApiRoute";
 import { useContext, useEffect, useState } from "react";
@@ -20,9 +20,15 @@ const VISIBLE_STATES: ConnectionRequestState[] = [
 interface Props {
   show: boolean;
   onHide: () => void;
+  onRequestAccepted?: (request: ConnectionRequest) => void;
 }
-export default function ConnectionRequests({ show, onHide }: Props) {
-  const { get, patch } = useApi();
+export default function ConnectionRequests({
+  show,
+  onHide,
+  onRequestAccepted,
+}: Props) {
+  const { get } = useApi();
+  const { updateState } = useConnectionRequests();
 
   const [requests, setRequests] = useState<ConnectionRequest[]>();
 
@@ -84,12 +90,11 @@ export default function ConnectionRequests({ show, onHide }: Props) {
     request: ConnectionRequest,
     state: ConnectionRequestState
   ) {
-    patch<void>(ApiRoute.SINGLE_CONNECTION_REQUEST(request.id), {
-      state,
-    })
+    updateState(request, state)
       .then(() => {
         removeRequest(request);
         sendRequestInteractionSuccesAlert(state);
+        onRequestAccepted?.(request);
       })
       .catch((error) => console.error(error));
   }

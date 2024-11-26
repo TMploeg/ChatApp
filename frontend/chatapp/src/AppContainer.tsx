@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import NotificationData from "./models/notification-data";
-import { useCheckin, useStorage, useWebSocket } from "./hooks";
+import {
+  useCheckin,
+  useConnectionRequests,
+  useStorage,
+  useWebSocket,
+} from "./hooks";
 import { JWT, Message } from "./models";
 import { StorageLocation } from "./enums/StorageLocation";
 import useNotification from "./hooks/useNotification";
@@ -8,6 +13,7 @@ import AppContext from "./AppContext";
 import StompBroker from "./enums/StompBroker";
 import { ConnectionRequest } from "./models/connection-request";
 import App from "./App";
+import ConnectionRequestState from "./enums/ConnectionRequestState";
 
 const DEBUG_ENABLED: boolean = false;
 const MAX_NOTIFICATIONS: number = 5;
@@ -28,6 +34,7 @@ export default function AppContainer() {
   const getCheckinData = useCheckin();
 
   const { getConnectionRequestNotification } = useNotification();
+  const { updateState } = useConnectionRequests();
 
   useEffect(() => {
     if (loggedIn === connected) {
@@ -116,7 +123,15 @@ export default function AppContainer() {
         Object.values(subscriptionMapping.CONNECTION_REQUESTS).forEach(
           (subscription) => subscription(request)
         );
+
         handleNewNotification(getConnectionRequestNotification(request));
+
+        if (
+          request.state.toUpperCase() ===
+          ConnectionRequestState.SEND.toUpperCase()
+        ) {
+          updateState(request, ConnectionRequestState.SEEN);
+        }
       }
     );
   }
