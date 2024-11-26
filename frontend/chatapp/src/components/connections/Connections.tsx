@@ -1,5 +1,5 @@
 import { Button, Modal } from "react-bootstrap";
-import { useApi } from "../../hooks";
+import { useApi, useAppNavigate, useChatGroups } from "../../hooks";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
 import { useContext, useEffect, useState } from "react";
 import Connection from "../../models/connection";
@@ -11,6 +11,7 @@ import ConnectionView from "./ConnectionView";
 import { BsPersonPlusFill } from "react-icons/bs";
 import AppContext from "../../AppContext";
 import ConnectionRequestState from "../../enums/ConnectionRequestState";
+import AppRoute from "../../enums/AppRoute";
 
 interface Props {
   show: boolean;
@@ -27,8 +28,11 @@ export default function Connections({
     useState<boolean>(false);
 
   const { get } = useApi();
+  const { create } = useChatGroups();
 
   const { subscriptions } = useContext(AppContext);
+
+  const navigate = useAppNavigate();
 
   useEffect(() => {
     get<Connection[]>(ApiRoute.CONNECTIONS()).then(setConnections);
@@ -73,7 +77,10 @@ export default function Connections({
                 id: conn.username,
               }))}
               ItemRenderElement={({ item: connection }) => (
-                <ConnectionView connection={connection} />
+                <ConnectionView
+                  connection={connection}
+                  onClick={() => handleConnectionClicked(connection)}
+                />
               )}
             />
           </div>
@@ -93,6 +100,13 @@ export default function Connections({
       connections?.unshift(connection);
       return connections;
     });
+  }
+
+  function handleConnectionClicked(connection: Connection) {
+    onHide();
+    create([connection.username]).then((createdGroup) =>
+      navigate(AppRoute.CHAT(createdGroup.id))
+    );
   }
 }
 

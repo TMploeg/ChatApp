@@ -2,6 +2,7 @@ import useAlert from "./useAlert";
 import useApi from "./useApi";
 import useAppNavigate from "./useAppNavigate";
 import useAuth from "./useAuth";
+import useChatGroups from "./useChatGroups";
 import useCheckin from "./useCheckin";
 import useConnectionRequests from "./useConnectionRequests";
 import useStorage from "./useStorage";
@@ -18,4 +19,5 @@ export {
   useCheckin,
   useAlert,
   useConnectionRequests,
+  useChatGroups,
 };

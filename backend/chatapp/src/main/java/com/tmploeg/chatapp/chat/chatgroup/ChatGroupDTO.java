@@ -8,7 +8,7 @@ public record ChatGroupDTO(UUID id, String name, List<UserDTO> users) {
   public static ChatGroupDTO from(ChatGroup chatGroup) {
     return new ChatGroupDTO(
         chatGroup.getId(),
-        chatGroup.getName().orElse(null),
+        chatGroup.getName(),
         chatGroup.getUsers().stream().map(UserDTO::from).toList());
   }
 }
