@@ -114,6 +114,7 @@ export default function AppContainer() {
     setConnected(false);
 
     clearNotifications();
+    clearSubscriptionMappings();
   }
 
   function clearNotifications() {
@@ -193,6 +194,14 @@ export default function AppContainer() {
           return newMapping;
         }),
     };
+  }
+
+  function clearSubscriptionMappings() {
+    setSubscriptionMapping({
+      CHAT: {},
+      CONNECTION_REQUESTS: {},
+      CHAT_GROUPS: {},
+    });
   }
 
   function handleNewNotification(notification: NotificationData) {
