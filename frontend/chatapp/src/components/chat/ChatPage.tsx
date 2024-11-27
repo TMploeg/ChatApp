@@ -23,10 +23,7 @@ export default function ChatPage() {
   }
 
   useEffect(() => {
-    const subscription = subscriptions.chatGroup.subscribe(
-      id,
-      handleNewMessage
-    );
+    const subscription = subscriptions.chat.subscribe(id, handleNewMessage);
 
     get<Message[]>(ApiRoute.CHAT(), { groupId: id })
       .then(setMessages)

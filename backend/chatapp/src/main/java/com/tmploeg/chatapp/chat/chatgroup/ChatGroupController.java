@@ -1,16 +1,16 @@
 package com.tmploeg.chatapp.chat.chatgroup;
 
 import com.tmploeg.chatapp.ApiRoutes;
+import com.tmploeg.chatapp.connections.ConnectionService;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
 import com.tmploeg.chatapp.exceptions.NotFoundException;
+import com.tmploeg.chatapp.messaging.MessagingService;
+import com.tmploeg.chatapp.messaging.StompBroker;
 import com.tmploeg.chatapp.security.AuthenticationProvider;
 import com.tmploeg.chatapp.users.User;
 import com.tmploeg.chatapp.users.UserService;
 import java.net.URI;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,12 +24,16 @@ public class ChatGroupController {
   private final AuthenticationProvider authenticationProvider;
   private final ChatGroupService chatGroupService;
   private final UserService userService;
+  private final MessagingService messagingService;
+  private final ConnectionService connectionService;
 
   @GetMapping
   public List<ChatGroupDTO> getChatGroups() {
     User user = authenticationProvider.getAuthenticatedUser();
 
-    return chatGroupService.getChatGroups(user).stream().map(ChatGroupDTO::from).toList();
+    return chatGroupService.getChatGroups(user).stream()
+        .map(group -> ChatGroupDTO.from(group, user))
+        .toList();
   }
 
   @GetMapping("{id}")
@@ -46,7 +50,7 @@ public class ChatGroupController {
     ChatGroup chatGroup =
         chatGroupService.getByIdForUser(parsedId, user).orElseThrow(NotFoundException::new);
 
-    return ChatGroupDTO.from(chatGroup);
+    return ChatGroupDTO.from(chatGroup, user);
   }
 
   @PostMapping
@@ -59,8 +63,18 @@ public class ChatGroupController {
       throw new BadRequestException("usernames can't be empty");
     }
 
+    User groupCreator = authenticationProvider.getAuthenticatedUser();
+
+    List<String> nonConnectedUsernames =
+        getNonConnectedUsernames(groupCreator, Arrays.asList(newChatGroupDTO.usernames()));
+    if (!nonConnectedUsernames.isEmpty()) {
+      throw new BadRequestException(
+          "usernames is invalid, users "
+              + String.join(", ", nonConnectedUsernames + " are not in your connections"));
+    }
+
     Set<User> groupUsers = new HashSet<>(newChatGroupDTO.usernames().length + 1);
-    groupUsers.add(authenticationProvider.getAuthenticatedUser());
+    groupUsers.add(groupCreator);
 
     for (String username : newChatGroupDTO.usernames()) {
       User user =
@@ -82,8 +96,28 @@ public class ChatGroupController {
       chatGroupService.update(group);
     }
 
-    URI uri = ucb.path("/api/v1/chatgroups/{id}").buildAndExpand(group.getId().toString()).toUri();
+    sendNewChatGroupMessage(group, groupCreator);
 
-    return ResponseEntity.created(uri).body(ChatGroupDTO.from(group));
+    URI uri = ucb.path("/api/v1/chatgroups/{id}").buildAndExpand(group.getId().toString()).toUri();
+    return ResponseEntity.created(uri).body(ChatGroupDTO.from(group, groupCreator));
+  }
+
+  private void sendNewChatGroupMessage(ChatGroup newGroup, User creator) {
+    List<User> recipients =
+        newGroup.getUsers().stream()
+            .filter(u -> !u.getUsername().equals(creator.getUsername()))
+            .toList();
+
+    for (User user : recipients) {
+      messagingService.sendToUser(user, StompBroker.CHAT_GROUPS, ChatGroupDTO.from(newGroup, user));
+    }
+  }
+
+  private List<String> getNonConnectedUsernames(User groupCreator, List<String> usernames) {
+    Set<User> connectedUsers = connectionService.getConnectedUsers(groupCreator);
+    return usernames.stream()
+        .filter(
+            username -> connectedUsers.stream().noneMatch(u -> u.getUsername().equals(username)))
+        .toList();
   }
 }

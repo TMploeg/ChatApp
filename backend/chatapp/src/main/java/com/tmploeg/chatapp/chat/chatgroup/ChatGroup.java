@@ -32,22 +32,7 @@ public class ChatGroup {
     this.name = name;
   }
 
-  public String getName() {
-    return name != null ? name : getPlaceholderName();
-  }
-
-  private String getPlaceholderName() {
-    int maxDisplayCount = 2;
-
-    String name =
-        String.join(", ", users.stream().limit(maxDisplayCount).map(User::getUsername).toList());
-
-    int remainingCount = Math.max(users.size() - maxDisplayCount, 0);
-
-    if (remainingCount > 0) {
-      name += " + " + remainingCount + " other users";
-    }
-
-    return name;
+  public Optional<String> getName() {
+    return Optional.ofNullable(name);
   }
 }

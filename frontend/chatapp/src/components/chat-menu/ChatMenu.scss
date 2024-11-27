@@ -8,35 +8,47 @@ $nav-active-opacity: 0.25;
   background-color: #303030;
   height: 100%;
 
-  padding-top: 10px;
-}
+  .add-group-button-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    padding: 8px;
+  }
 
-.nav {
-  flex-direction: column;
-}
-.nav > * {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-  font-size: 24px;
+  .chat-menu-hr {
+    margin-left: 8px;
+    margin-right: 8px;
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
 
-  padding-left: 20px;
-  padding-top: 16px;
-  padding-bottom: 16px;
+  .nav {
+    flex-direction: column;
+  }
+  .nav > * {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    font-size: 24px;
 
-  background-color: rgba(0, 0, 0, $nav-default-opacity);
-  transition: background-color 0.3s;
-  cursor: pointer;
-}
-.nav > *:hover {
-  background-color: rgba(0, 0, 0, $nav-hover-opacity);
-}
-.nav > *:active {
-  background-color: rgba(0, 0, 0, $nav-active-opacity);
-}
+    padding-left: 20px;
+    padding-top: 16px;
+    padding-bottom: 16px;
 
-.nav-item-text {
-  position: relative;
-  padding-right: 8px;
+    background-color: rgba(0, 0, 0, $nav-default-opacity);
+    transition: background-color 0.3s;
+    cursor: pointer;
+  }
+  .nav > *:hover {
+    background-color: rgba(0, 0, 0, $nav-hover-opacity);
+  }
+  .nav > *:active {
+    background-color: rgba(0, 0, 0, $nav-active-opacity);
+  }
+
+  .nav-item-text {
+    position: relative;
+    padding-right: 8px;
+  }
 }

@@ -14,6 +14,8 @@ import StompBroker from "./enums/StompBroker";
 import { ConnectionRequest } from "./models/connection-request";
 import App from "./App";
 import ConnectionRequestState from "./enums/ConnectionRequestState";
+import { BsChatFill } from "react-icons/bs";
+import ChatGroup, { ChatGroupData } from "./models/chat-group";
 
 const DEBUG_ENABLED: boolean = false;
 const MAX_NOTIFICATIONS: number = 5;
@@ -28,6 +30,7 @@ export default function AppContainer() {
     useState<SubscriptionMapping>({
       CHAT: {},
       CONNECTION_REQUESTS: {},
+      CHAT_GROUPS: {},
     });
 
   const socket = useWebSocket();
@@ -61,7 +64,7 @@ export default function AppContainer() {
           add: handleNewNotification,
         },
         subscriptions: {
-          chatGroup: {
+          chat: {
             subscribe: (id, callback) =>
               addSubscriptionMapping(id, callback, SubscriptionName.CHAT),
           },
@@ -71,6 +74,14 @@ export default function AppContainer() {
                 id,
                 callback,
                 SubscriptionName.CONNECTION_REQUESTS
+              ),
+          },
+          chatGroups: {
+            subscribe: (id, callback) =>
+              addSubscriptionMapping(
+                id,
+                callback,
+                SubscriptionName.CHAT_GROUPS
               ),
           },
         },
@@ -91,8 +102,7 @@ export default function AppContainer() {
   function handleConnected() {
     setConnected(true);
 
-    enableChatMessageListener();
-    enableConnectionRequestListener();
+    enableListeners();
     getCheckinData().then((data) =>
       setNotifications(
         data.newConnectionRequests.map(getConnectionRequestNotification)
@@ -110,13 +120,11 @@ export default function AppContainer() {
     setNotifications([]);
   }
 
-  function enableChatMessageListener() {
+  function enableListeners() {
     socket.subscribe<Message>(StompBroker.CHAT, (message) =>
       subscriptionMapping.CHAT[message.groupId]?.(message)
     );
-  }
 
-  function enableConnectionRequestListener() {
     socket.subscribe<ConnectionRequest>(
       StompBroker.CONNECTION_REQUESTS,
       (request) => {
@@ -134,6 +142,22 @@ export default function AppContainer() {
         }
       }
     );
+
+    socket.subscribe<ChatGroupData>(StompBroker.CHAT_GROUPS, (groupData) => {
+      const group = new ChatGroup(groupData);
+      console.log("NEW GROUP: ", groupData);
+      Object.values(subscriptionMapping.CHAT_GROUPS).forEach((subscription) =>
+        subscription(group)
+      );
+
+      handleNewNotification({
+        id: "newgroup_" + group.getId(),
+        title: "Chat Groups",
+        icon: BsChatFill,
+        text: `New chat group: '${group.getName()}'`,
+        variant: "primary",
+      });
+    });
   }
 
   function addSubscriptionMapping<TData>(
@@ -196,4 +220,5 @@ type SubscriptionMapping = Record<
 enum SubscriptionName {
   CHAT = "CHAT",
   CONNECTION_REQUESTS = "CONNECTION_REQUESTS",
+  CHAT_GROUPS = "CHAT_GROUPS",
 }

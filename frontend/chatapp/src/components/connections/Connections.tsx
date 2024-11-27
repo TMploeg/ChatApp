@@ -105,7 +105,7 @@ export default function Connections({
   function handleConnectionClicked(connection: Connection) {
     onHide();
     createPrivateGroup(connection.username).then((createdGroup) =>
-      navigate(AppRoute.CHAT(createdGroup.id))
+      navigate(AppRoute.CHAT(createdGroup.getId()))
     );
   }
 }

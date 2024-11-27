@@ -18,6 +18,8 @@ public class AuthController {
   private final UserService userService;
   private final TokenWriter tokenWriter;
 
+  // TODO add verify token endpoint
+
   @PostMapping("login")
   public TokenDTO login(@RequestBody AuthDTO authDTO) {
     if (authDTO.username() == null || authDTO.username().isBlank()) {
