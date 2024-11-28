@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Form, FormGroup, Modal } from "react-bootstrap";
+import { Button, Dropdown, Form, FormGroup, Modal } from "react-bootstrap";
 import Connection from "../../../models/connection";
 import { useApi, useChatGroups } from "../../../hooks";
 import ApiRoute from "../../../enums/ApiRoute";
@@ -7,6 +7,7 @@ import { ClipLoader } from "react-spinners";
 import SeperatedList from "../../generic/seperated-list/SeperatedList";
 import "./AddGroupChatDialog.scss";
 import ChatGroup from "../../../models/chat-group";
+import { BsPersonFill, BsXLg } from "react-icons/bs";
 
 interface Props {
   show: boolean;
@@ -21,6 +22,9 @@ export default function AddGroupChatDialog({ show, onHide, onCreated }: Props) {
   const { get } = useApi();
   const { createMultiGroup } = useChatGroups();
 
+  const visibleConnections = connections?.filter(
+    (c) => !selectedUsernames.includes(c.username)
+  );
   useEffect(() => {
     if (show) {
       get<Connection[]>(ApiRoute.CONNECTIONS()).then(setConnections);
@@ -44,49 +48,55 @@ export default function AddGroupChatDialog({ show, onHide, onCreated }: Props) {
             }
           />
         </FormGroup>
-        {connections ? (
-          <FormGroup>
-            <Form.Label>Username</Form.Label>
-            <Form.Select
-              onChange={(e) =>
-                setSelectedUsernames((users) => [e.target.value, ...users])
-              }
-              defaultValue=""
+        {visibleConnections ? (
+          <Dropdown>
+            <Dropdown.Toggle
+              className="connection-select-toggle"
+              disabled={visibleConnections.length === 0}
+              variant={visibleConnections.length > 0 ? "primary" : "secondary"}
             >
-              <option disabled value="">
-                --- click here to select a user ---
-              </option>
-              {connections.map((connection) => (
-                <option key={connection.username} value={connection.username}>
+              {visibleConnections.length > 0
+                ? "Select Users"
+                : "No Connections Left"}
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="connection-select-menu">
+              {visibleConnections.map((connection) => (
+                <Dropdown.Item
+                  key={connection.username}
+                  onClick={() => addUsername(connection.username)}
+                >
                   {connection.username}
-                </option>
+                </Dropdown.Item>
               ))}
-            </Form.Select>
-          </FormGroup>
+            </Dropdown.Menu>
+          </Dropdown>
         ) : (
           <ClipLoader color="white" />
         )}
         <h2 className="selected-users-display-title">Selected Users</h2>
         <div className="selected-users-display-list-container">
           <div className="overlay" />
-          <div className="selected-users-display-list">
-            {selectedUsernames.length > 0 ? (
+          {selectedUsernames.length > 0 && (
+            <div className="selected-users-display-list">
               <SeperatedList
                 items={selectedUsernames.map((username) => ({
                   id: username,
                 }))}
-                ItemRenderElement={({ item }) => (
-                  <SelectedUserView username={item.id} />
+                ItemRenderElement={({ item: { id: username } }) => (
+                  <SelectedUserView
+                    username={username}
+                    onDelete={() => removeUsername(username)}
+                  />
                 )}
               />
-            ) : (
-              <div>*cricket noise</div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary">Cancel</Button>
+        <Button variant="secondary" onClick={() => onHide()}>
+          Cancel
+        </Button>
         <Button
           variant="primary"
           disabled={selectedUsernames.length === 0}
@@ -102,11 +112,44 @@ export default function AddGroupChatDialog({ show, onHide, onCreated }: Props) {
       </Modal.Footer>
     </Modal>
   );
+
+  function addUsername(username: string) {
+    setSelectedUsernames((usernames) => [username, ...usernames]);
+  }
+
+  function removeUsername(username: string) {
+    setSelectedUsernames((usernames) => {
+      const usernameIndex = usernames.indexOf(username);
+
+      if (usernameIndex < 0) {
+        return usernames;
+      }
+
+      return usernames
+        .slice(0, usernameIndex)
+        .concat(usernames.slice(usernameIndex + 1));
+    });
+  }
 }
 
 interface SelectedUserViewProps {
   username: string;
+  onDelete: () => void;
 }
-function SelectedUserView({ username }: SelectedUserViewProps) {
-  return <div className="selected-user-view">{username}</div>;
+function SelectedUserView({ username, onDelete }: SelectedUserViewProps) {
+  return (
+    <div className="selected-user-view">
+      <div className="selected-user-info">
+        <BsPersonFill size="1.3em" />
+        <div>{username}</div>
+      </div>
+      <Button
+        variant="outline"
+        className="selected-user-delete-button"
+        onClick={onDelete}
+      >
+        <BsXLg size="1.3em" />
+      </Button>
+    </div>
+  );
 }

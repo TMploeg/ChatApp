@@ -7,6 +7,12 @@
     overflow-y: hidden;
     display: flex;
     flex-direction: column;
+    gap: 16px;
+
+    .connection-select-toggle,
+    .connection-select-menu {
+      width: 100%;
+    }
 
     .selected-users-display-title {
       margin-top: 16px;
@@ -43,5 +49,24 @@
         border-radius: 8px;
       }
     }
+  }
+}
+
+.selected-user-view {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  .selected-user-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding-left: 4px;
+  }
+
+  .selected-user-delete-button {
+    display: flex;
   }
 }
