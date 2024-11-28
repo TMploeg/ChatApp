@@ -1,5 +1,5 @@
 export interface ConnectionRequest {
   id: string;
-  username: string;
+  subject: string;
   state: string;
 }

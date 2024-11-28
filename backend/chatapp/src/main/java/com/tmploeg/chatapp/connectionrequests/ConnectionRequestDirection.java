@@ -3,9 +3,9 @@ package com.tmploeg.chatapp.connectionrequests;
 import java.util.Optional;
 
 public enum ConnectionRequestDirection {
-  ALL,
-  SEND,
-  RECEIVED;
+  TWO_WAY,
+  INCOMING,
+  OUTGOING;
 
   public static Optional<ConnectionRequestDirection> tryParse(String rawValue) {
     for (ConnectionRequestDirection dir : ConnectionRequestDirection.values()) {

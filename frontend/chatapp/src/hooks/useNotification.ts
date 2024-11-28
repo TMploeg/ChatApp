@@ -17,20 +17,20 @@ export default function useNotification() {
       case ConnectionRequestState.SEND:
         return {
           ...data,
-          text: `'${request.username}' wants to connect with you.`,
+          text: `'${request.subject}' wants to connect with you.`,
           // onClick: () => navigate(AppRoute.CONNECTION_REQUESTS),
         };
       case ConnectionRequestState.ACCEPTED:
         return {
           ...data,
-          text: `'${request.username}' accepted your connection request`,
+          text: `'${request.subject}' accepted your connection request`,
           // onClick: () => navigate(AppRoute.CONNECTIONS),
           variant: "success",
         };
       case ConnectionRequestState.REJECTED:
         return {
           ...data,
-          text: `'${request.username}' rejected your connection request`,
+          text: `'${request.subject}' rejected your connection request`,
           variant: "secondary",
         };
       default:

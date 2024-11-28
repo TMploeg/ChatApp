@@ -15,6 +15,8 @@ import com.tmploeg.chatapp.users.UserService;
 import jakarta.transaction.Transactional;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,28 +32,67 @@ public class ConnectionRequestController {
 
   @GetMapping
   public List<ConnectionRequestDTO> getConnectionRequests(
-      @RequestParam(name = "state", required = false) String[] states,
+      @RequestParam(name = "state", defaultValue = "") String[] states,
       @RequestParam(name = "direction", required = false) String direction) {
+    ConnectionRequestDirection parsedDirection = parseDirection(direction);
+    List<ConnectionRequestState> parsedStates = parseStates(states);
     User user = authenticationProvider.getAuthenticatedUser();
 
-    ConnectionRequestDirection parsedDirection = parseDirection(direction);
-
-    if (states == null || states.length == 0) {
-      return connectionRequestService.getRequestsByUser(user, parsedDirection).stream()
-          .map(ConnectionRequestDTO::from)
-          .toList();
-    }
+    Specification<ConnectionRequest> specification =
+        switch (parsedDirection) {
+          case INCOMING ->
+              requestSpecification(user, ConnectionRequestDirection.INCOMING, parsedStates);
+          case OUTGOING ->
+              maskedRequestSpecification(user, ConnectionRequestDirection.OUTGOING, parsedStates);
+          case TWO_WAY ->
+              Specification.anyOf(
+                  requestSpecification(user, ConnectionRequestDirection.INCOMING, parsedStates),
+                  maskedRequestSpecification(
+                      user, ConnectionRequestDirection.OUTGOING, parsedStates));
+        };
 
     return connectionRequestService
-        .getRequestsByUser(user, parseStates(states), parsedDirection)
+        .filterAll(
+            ConnectionRequestSpecificationFactory.orderedByOppositeUserAsc(specification, user))
         .stream()
-        .map(ConnectionRequestDTO::from)
+        .map(request -> ConnectionRequestDTO.from(request, user))
         .toList();
+  }
+
+  private Specification<ConnectionRequest> requestSpecification(
+      User user, ConnectionRequestDirection direction, Collection<ConnectionRequestState> states) {
+    List<Specification<ConnectionRequest>> specifications = new ArrayList<>();
+
+    specifications.add(ConnectionRequestSpecificationFactory.hasUser(user, direction));
+
+    if (!states.isEmpty()) {
+      specifications.add(ConnectionRequestSpecificationFactory.inState(states));
+    }
+
+    return Specification.allOf(specifications);
+  }
+
+  private Specification<ConnectionRequest> maskedRequestSpecification(
+      User user, ConnectionRequestDirection direction, Collection<ConnectionRequestState> states) {
+    return requestSpecification(user, direction, maskIgnored(states));
+  }
+
+  private Sort getSort(ConnectionRequestDirection direction) {
+    String connectorUsernameProperty = "connector.username";
+    String connecteeUsernameProperty = "connectee.username";
+
+    return switch (direction) {
+      case INCOMING -> Sort.by(Sort.Order.asc(connectorUsernameProperty));
+      case OUTGOING -> Sort.by(Sort.Order.asc(connecteeUsernameProperty));
+      case TWO_WAY ->
+          Sort.by(
+              Sort.Order.asc(connectorUsernameProperty), Sort.Order.asc(connecteeUsernameProperty));
+    };
   }
 
   private ConnectionRequestDirection parseDirection(String direction) {
     return direction == null
-        ? ConnectionRequestDirection.ALL
+        ? ConnectionRequestDirection.TWO_WAY
         : ConnectionRequestDirection.tryParse(direction)
             .orElseThrow(
                 () ->
@@ -59,7 +100,7 @@ public class ConnectionRequestController {
                         "direction is invalid (invalid value: '" + direction + "')"));
   }
 
-  private Collection<ConnectionRequestState> parseStates(String[] states) {
+  private List<ConnectionRequestState> parseStates(String[] states) {
     List<ConnectionRequestState> targetStates = new ArrayList<>(states.length);
 
     for (String state : states) {
@@ -74,6 +115,19 @@ public class ConnectionRequestController {
     return targetStates;
   }
 
+  private List<ConnectionRequestState> maskIgnored(Collection<ConnectionRequestState> states) {
+    List<ConnectionRequestState> newStates = new ArrayList<>(states);
+    if (newStates.contains(ConnectionRequestState.SEEN)) {
+      if (!newStates.contains(ConnectionRequestState.IGNORED)) {
+        newStates.add(ConnectionRequestState.IGNORED);
+      }
+    } else {
+      newStates.remove(ConnectionRequestState.IGNORED);
+    }
+
+    return newStates;
+  }
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public void sendConnectionRequest(@RequestBody NewConnectionRequestDTO connectionRequestDTO) {
@@ -85,7 +139,6 @@ public class ConnectionRequestController {
     if (connectionRequestDTO.connecteeUsername().isBlank()) {
       throw new BadRequestException("connecteeUsername can't be blank");
     }
-
     if (connector.getUsername().equals(connectionRequestDTO.connecteeUsername())) {
       throw new BadRequestException("can't send connection request to self");
     }
@@ -98,14 +151,22 @@ public class ConnectionRequestController {
                     new BadRequestException(
                         "user '" + connectionRequestDTO.connecteeUsername() + "' does not exist"));
 
-    if (connectionRequestService.openRequestExists(connector, connectee)) {
+    // TODO enable users to resend requests after time has passed
+    Specification<ConnectionRequest> connectorSpecification =
+        ConnectionRequestSpecificationFactory.hasUser(
+            connector, ConnectionRequestDirection.OUTGOING);
+    Specification<ConnectionRequest> connecteeSpecification =
+        ConnectionRequestSpecificationFactory.hasUser(
+            connectee, ConnectionRequestDirection.INCOMING);
+
+    if (connectionRequestService.exists(connectorSpecification.and(connecteeSpecification))) {
       throw new BadRequestException("request to user already exists");
     }
 
     ConnectionRequest request = connectionRequestService.save(connector, connectee);
 
     messagingService.sendToUser(
-        connectee, StompBroker.CONNECTION_REQUESTS, ConnectionRequestDTO.from(request));
+        connectee, StompBroker.CONNECTION_REQUESTS, ConnectionRequestDTO.from(request, connector));
   }
 
   @PatchMapping("{id}")
@@ -117,7 +178,12 @@ public class ConnectionRequestController {
       User user = authenticationProvider.getAuthenticatedUser();
 
       ConnectionRequest request =
-          connectionRequestService.findByIdForUser(id, user).orElseThrow(NotFoundException::new);
+          connectionRequestService
+              .filterById(
+                  id,
+                  ConnectionRequestSpecificationFactory.hasUser(
+                      user, ConnectionRequestDirection.TWO_WAY))
+              .orElseThrow(NotFoundException::new);
 
       ConnectionRequestState newState =
           ConnectionRequestState.tryParse(updateDTO.state())
@@ -169,7 +235,7 @@ public class ConnectionRequestController {
       messagingService.sendToUser(
           request.getConnector(),
           StompBroker.CONNECTION_REQUESTS,
-          ConnectionRequestDTO.completedRequestFrom(request));
+          ConnectionRequestDTO.from(request, user));
     }
   }
 }

@@ -45,7 +45,7 @@ export default function Connections({
           ConnectionRequestState.ACCEPTED.toUpperCase()
         ) {
           handleNewConnection({
-            username: request.username,
+            username: request.subject,
           });
         }
       }

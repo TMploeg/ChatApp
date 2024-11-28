@@ -2,12 +2,13 @@ package com.tmploeg.chatapp.connections;
 
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequestDirection;
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequestService;
+import com.tmploeg.chatapp.connectionrequests.ConnectionRequestSpecificationFactory;
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequestState;
 import com.tmploeg.chatapp.users.User;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,8 +18,11 @@ public class ConnectionService {
 
   public Set<User> getConnectedUsers(User user) {
     return connectionRequestService
-        .getRequestsByUser(
-            user, List.of(ConnectionRequestState.ACCEPTED), ConnectionRequestDirection.ALL)
+        .filterAll(
+            Specification.allOf(
+                ConnectionRequestSpecificationFactory.hasUser(
+                    user, ConnectionRequestDirection.TWO_WAY),
+                ConnectionRequestSpecificationFactory.inState(ConnectionRequestState.ACCEPTED)))
         .stream()
         .map(
             request ->

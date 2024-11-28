@@ -101,7 +101,7 @@ export default function Toolbar({ title, loggedIn, onLogout }: Props) {
               }
               onRequestAccepted={(request) =>
                 acceptedConnectionStream.addConnection({
-                  username: request.username,
+                  username: request.subject,
                 })
               }
             />
