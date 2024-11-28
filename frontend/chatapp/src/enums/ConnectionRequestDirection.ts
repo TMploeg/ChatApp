@@ -1,7 +1,7 @@
 enum ConnectionRequestDirection {
-  ALL = "ALL",
-  SEND = "SEND",
-  RECEIVED = "RECEIVED",
+  ALL = "TWO_WAY",
+  SEND = "OUTGOING",
+  RECEIVED = "INCOMING",
 }
 
 export default ConnectionRequestDirection;
