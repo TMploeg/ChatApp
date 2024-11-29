@@ -1,4 +1,4 @@
-import { Button, Nav } from "react-bootstrap";
+import { Nav } from "react-bootstrap";
 import { useApi, useAppNavigate } from "../../hooks";
 import "./ChatMenu.scss";
 import { useContext, useEffect, useState } from "react";
@@ -8,7 +8,7 @@ import { ClipLoader } from "react-spinners";
 import { BsPeopleFill, BsPersonFill, BsPlusLg } from "react-icons/bs";
 import { IconBaseProps } from "react-icons";
 import AppRoute from "../../enums/AppRoute";
-import AppContext from "../../AppContext";
+import { ChatGroupsContext } from "../../context";
 import IconButton, { Size } from "../generic/icon-button/IconButton";
 import AddGroupChatDialog from "./add-group-chat-dialog/AddGroupChatDialog";
 
@@ -23,14 +23,14 @@ export default function ChatMenu() {
   const { get } = useApi();
   const navigate = useAppNavigate();
 
-  const { subscriptions } = useContext(AppContext);
+  const chatGroupsContext = useContext(ChatGroupsContext);
 
   useEffect(() => {
     get<ChatGroupData[]>(ApiRoute.CHAT_GROUPS()).then((groups) =>
       setChatGroups(groups.map((group) => new ChatGroup(group)))
     );
 
-    subscriptions.chatGroups.subscribe("ChatMenu", (newGroup) =>
+    chatGroupsContext.subscribe("ChatMenu", (newGroup) =>
       addChatGroup(new ChatGroup(newGroup))
     );
   }, []);

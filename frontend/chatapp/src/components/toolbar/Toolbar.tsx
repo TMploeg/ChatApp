@@ -4,9 +4,13 @@ import { BsBoxArrowRight, BsEnvelopeFill, BsPeopleFill } from "react-icons/bs";
 import { useAppNavigate } from "../../hooks";
 import AppRoute from "../../enums/AppRoute";
 import Connections, { NewConnectionStream } from "../connections/Connections";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import ConnectionRequests from "../connection-requests/ConnectionRequests";
 import Connection from "../../models/connection";
+import {
+  ConnectionRequestsVisibilityContext,
+  ConnectionsVisibilityContext as ConnectionsVisibilityContext,
+} from "../../context";
 
 interface Props {
   title?: string;
@@ -16,9 +20,11 @@ interface Props {
 export default function Toolbar({ title, loggedIn, onLogout }: Props) {
   const navigate = useAppNavigate();
 
-  const [backdropVisiblity, setBackdropVisiblity] = useState<BackdropVisiblity>(
-    { connections: false, connectionRequests: false }
+  const connectionsVisibility = useContext(ConnectionsVisibilityContext);
+  const connectionRequestsVisibility = useContext(
+    ConnectionRequestsVisibilityContext
   );
+
   const [acceptedConnectionStream] = useState<AcceptedConnectionStream>(
     new AcceptedConnectionStream()
   );
@@ -44,12 +50,7 @@ export default function Toolbar({ title, loggedIn, onLogout }: Props) {
               delay={500}
             >
               <Button
-                onClick={() =>
-                  setBackdropVisiblity((visibility) => ({
-                    ...visibility,
-                    connections: true,
-                  }))
-                }
+                onClick={connectionsVisibility.show}
                 className="toolbar-button"
               >
                 <BsPeopleFill size={32} />
@@ -61,12 +62,7 @@ export default function Toolbar({ title, loggedIn, onLogout }: Props) {
               delay={500}
             >
               <Button
-                onClick={() =>
-                  setBackdropVisiblity((visibility) => ({
-                    ...visibility,
-                    connectionRequests: true,
-                  }))
-                }
+                onClick={connectionRequestsVisibility.show}
                 className="toolbar-button"
               >
                 <BsEnvelopeFill size={32} />
@@ -82,23 +78,13 @@ export default function Toolbar({ title, loggedIn, onLogout }: Props) {
               </Button>
             </OverlayTrigger>
             <Connections
-              show={backdropVisiblity.connections}
-              onHide={() =>
-                setBackdropVisiblity((visibility) => ({
-                  ...visibility,
-                  connections: false,
-                }))
-              }
+              show={connectionsVisibility.visible}
+              onHide={connectionsVisibility.hide}
               newConnectionStream={acceptedConnectionStream}
             />
             <ConnectionRequests
-              show={backdropVisiblity.connectionRequests}
-              onHide={() =>
-                setBackdropVisiblity((visibility) => ({
-                  ...visibility,
-                  connectionRequests: false,
-                }))
-              }
+              show={connectionRequestsVisibility.visible}
+              onHide={connectionRequestsVisibility.hide}
               onRequestAccepted={(request) =>
                 acceptedConnectionStream.addConnection({
                   username: request.subject,
@@ -110,11 +96,6 @@ export default function Toolbar({ title, loggedIn, onLogout }: Props) {
       </div>
     </div>
   );
-}
-
-interface BackdropVisiblity {
-  connections: boolean;
-  connectionRequests: boolean;
 }
 
 class AcceptedConnectionStream implements NewConnectionStream {

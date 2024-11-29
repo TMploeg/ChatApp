@@ -5,40 +5,40 @@ import ConnectionRequestState from "../enums/ConnectionRequestState";
 
 export default function useNotification() {
   function getConnectionRequestNotification(
-    request: ConnectionRequest
+    request: ConnectionRequest,
+    params?: NotificationParams
   ): NotificationData {
     const data: NotificationData = {
       id: request.id,
       icon: BsFillPeopleFill,
       title: "Connection Request",
+      onClick: params?.onClick,
     };
 
     switch (request.state.toUpperCase()) {
       case ConnectionRequestState.SEND:
-        return {
-          ...data,
-          text: `'${request.subject}' wants to connect with you.`,
-          // onClick: () => navigate(AppRoute.CONNECTION_REQUESTS),
-        };
+        data.text = `'${request.subject}' wants to connect with you.`;
+        break;
       case ConnectionRequestState.ACCEPTED:
-        return {
-          ...data,
-          text: `'${request.subject}' accepted your connection request`,
-          // onClick: () => navigate(AppRoute.CONNECTIONS),
-          variant: "success",
-        };
+        data.text = `'${request.subject}' accepted your connection request`;
+        data.variant = "success";
+        break;
       case ConnectionRequestState.REJECTED:
-        return {
-          ...data,
-          text: `'${request.subject}' rejected your connection request`,
-          variant: "secondary",
-        };
+        data.text = `'${request.subject}' rejected your connection request`;
+        data.variant = "secondary";
+        break;
       default:
         throw new Error("invalid state detected (" + request.state + ")");
     }
+
+    return data;
   }
 
   return {
     getConnectionRequestNotification,
   };
+}
+
+interface NotificationParams {
+  onClick?: () => void;
 }

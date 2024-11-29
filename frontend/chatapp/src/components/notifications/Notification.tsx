@@ -7,9 +7,8 @@ const NOTIFICATION_AUTOHIDE_DELAY: number = 8000;
 
 interface Props {
   notification: NotificationData;
-  onClick?: () => void;
 }
-export default function Notification({ notification, onClick }: Props) {
+export default function Notification({ notification }: Props) {
   const [visible, setVisible] = useState<boolean>(false);
 
   useEffect(() => setVisible(true), []);
@@ -22,8 +21,8 @@ export default function Notification({ notification, onClick }: Props) {
       delay={NOTIFICATION_AUTOHIDE_DELAY}
       bg={notification.variant ?? "primary"}
       onClick={() => {
-        if (onClick) {
-          onClick();
+        if (notification.onClick) {
+          notification.onClick();
           setVisible(false);
         }
       }}
@@ -50,7 +49,7 @@ export default function Notification({ notification, onClick }: Props) {
   function getNotificationClasses(): string[] {
     const classes: string[] = ["notification"];
 
-    if (onClick) {
+    if (notification.onClick) {
       classes.push("clickable");
     }
 

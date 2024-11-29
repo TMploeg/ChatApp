@@ -10,7 +10,7 @@ import ConnectionRequestDirection from "../../enums/ConnectionRequestDirection";
 import { Variant } from "react-bootstrap/esm/types";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
 import "./ConnectionRequests.scss";
-import AppContext from "../../AppContext";
+import { ConnectionRequestContext } from "../../context";
 
 const VISIBLE_STATES: ConnectionRequestState[] = [
   ConnectionRequestState.SEND,
@@ -34,15 +34,17 @@ export default function ConnectionRequests({
 
   const alert = useAlert();
 
-  const { subscriptions } = useContext(AppContext);
+  const connectionRequestContext = useContext(ConnectionRequestContext);
 
   useEffect(() => {
     get<ConnectionRequest[]>(ApiRoute.CONNECTION_REQUESTS(), {
       state: VISIBLE_STATES.join(","),
       direction: ConnectionRequestDirection.RECEIVED,
-    }).then(setRequests);
+    }).then((requests) => {
+      setRequests(requests);
+    });
 
-    const subscription = subscriptions.connectionRequests.subscribe(
+    const subscription = connectionRequestContext.subscribe(
       "ConnectionRequests",
       (request) => {
         if (
@@ -60,6 +62,16 @@ export default function ConnectionRequests({
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (requests) {
+      requests
+        .filter((request) => request.state === ConnectionRequestState.SEND)
+        .forEach((request) =>
+          updateState(request, ConnectionRequestState.SEEN)
+        );
+    }
+  }, [show]);
 
   return (
     <Modal show={show} onHide={onHide} fullscreen>

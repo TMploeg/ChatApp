@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import NotificationData from "./models/notification-data";
 import {
   useCheckin,
@@ -9,13 +9,15 @@ import {
 import { JWT, Message } from "./models";
 import { StorageLocation } from "./enums/StorageLocation";
 import useNotification from "./hooks/useNotification";
-import AppContext from "./AppContext";
 import StompBroker from "./enums/StompBroker";
 import { ConnectionRequest } from "./models/connection-request";
 import App from "./App";
 import ConnectionRequestState from "./enums/ConnectionRequestState";
 import { BsChatFill } from "react-icons/bs";
 import ChatGroup, { ChatGroupData } from "./models/chat-group";
+import SubscriptionName from "./enums/SubscriptionName";
+import ContextProviders from "./ContextProviders";
+import { ConnectionRequestsVisibilityContext } from "./context";
 
 const DEBUG_ENABLED: boolean = false;
 const MAX_NOTIFICATIONS: number = 5;
@@ -39,6 +41,10 @@ export default function AppContainer() {
   const { getConnectionRequestNotification } = useNotification();
   const { updateState } = useConnectionRequests();
 
+  const connectionRequestsVisibility = useContext(
+    ConnectionRequestsVisibilityContext
+  );
+
   useEffect(() => {
     if (loggedIn === connected) {
       return;
@@ -57,35 +63,10 @@ export default function AppContainer() {
   }, [loggedIn]);
 
   return (
-    <AppContext.Provider
-      value={{
-        notifications: {
-          data: notifications,
-          add: handleNewNotification,
-        },
-        subscriptions: {
-          chat: {
-            subscribe: (id, callback) =>
-              addSubscriptionMapping(id, callback, SubscriptionName.CHAT),
-          },
-          connectionRequests: {
-            subscribe: (id, callback) =>
-              addSubscriptionMapping(
-                id,
-                callback,
-                SubscriptionName.CONNECTION_REQUESTS
-              ),
-          },
-          chatGroups: {
-            subscribe: (id, callback) =>
-              addSubscriptionMapping(
-                id,
-                callback,
-                SubscriptionName.CHAT_GROUPS
-              ),
-          },
-        },
-      }}
+    <ContextProviders
+      notifications={notifications}
+      onNotificationAdded={handleNewNotification}
+      onSubscribed={addSubscriptionMapping}
     >
       <App
         loggedIn={loggedIn}
@@ -95,19 +76,15 @@ export default function AppContainer() {
           setToken(null);
           setLoggedIn(false);
         }}
+        onNewNotification={handleNewNotification}
       />
-    </AppContext.Provider>
+    </ContextProviders>
   );
 
   function handleConnected() {
     setConnected(true);
 
     enableListeners();
-    getCheckinData().then((data) =>
-      setNotifications(
-        data.newConnectionRequests.map(getConnectionRequestNotification)
-      )
-    );
   }
 
   function handleDisconnected() {
@@ -132,21 +109,12 @@ export default function AppContainer() {
         Object.values(subscriptionMapping.CONNECTION_REQUESTS).forEach(
           (subscription) => subscription(request)
         );
-
-        handleNewNotification(getConnectionRequestNotification(request));
-
-        if (
-          request.state.toUpperCase() ===
-          ConnectionRequestState.SEND.toUpperCase()
-        ) {
-          updateState(request, ConnectionRequestState.SEEN);
-        }
       }
     );
 
     socket.subscribe<ChatGroupData>(StompBroker.CHAT_GROUPS, (groupData) => {
       const group = new ChatGroup(groupData);
-      console.log("NEW GROUP: ", groupData);
+
       Object.values(subscriptionMapping.CHAT_GROUPS).forEach((subscription) =>
         subscription(group)
       );
@@ -225,9 +193,3 @@ type SubscriptionMapping = Record<
   keyof typeof SubscriptionName,
   Record<string, (data: any) => void>
 >;
-
-enum SubscriptionName {
-  CHAT = "CHAT",
-  CONNECTION_REQUESTS = "CONNECTION_REQUESTS",
-  CHAT_GROUPS = "CHAT_GROUPS",
-}

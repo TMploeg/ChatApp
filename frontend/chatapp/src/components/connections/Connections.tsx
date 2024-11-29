@@ -9,9 +9,9 @@ import SendConnectionRequestModal from "./send-connection-request-modal/SendConn
 import "./Connections.scss";
 import ConnectionView from "./ConnectionView";
 import { BsPersonPlusFill } from "react-icons/bs";
-import AppContext from "../../AppContext";
 import ConnectionRequestState from "../../enums/ConnectionRequestState";
 import AppRoute from "../../enums/AppRoute";
+import { ConnectionRequestContext } from "../../context";
 
 interface Props {
   show: boolean;
@@ -30,14 +30,14 @@ export default function Connections({
   const { get } = useApi();
   const { createPrivateGroup } = useChatGroups();
 
-  const { subscriptions } = useContext(AppContext);
+  const connectionRequestContext = useContext(ConnectionRequestContext);
 
   const navigate = useAppNavigate();
 
   useEffect(() => {
     get<Connection[]>(ApiRoute.CONNECTIONS()).then(setConnections);
 
-    const subscription = subscriptions.connectionRequests.subscribe(
+    const subscription = connectionRequestContext.subscribe(
       "Connections",
       (request) => {
         if (

@@ -6,7 +6,7 @@ import { useApi, useAppNavigate } from "../../hooks";
 import ApiRoute from "../../enums/ApiRoute";
 import { useParams } from "react-router-dom";
 import AppRoute from "../../enums/AppRoute";
-import AppContext from "../../AppContext";
+import { ChatContext } from "../../context";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>();
@@ -15,7 +15,7 @@ export default function ChatPage() {
   const navigate = useAppNavigate();
   const { id } = useParams();
 
-  const { subscriptions } = useContext(AppContext);
+  const chatContext = useContext(ChatContext);
 
   if (!id) {
     navigate(AppRoute.HOME);
@@ -23,7 +23,7 @@ export default function ChatPage() {
   }
 
   useEffect(() => {
-    const subscription = subscriptions.chat.subscribe(id, handleNewMessage);
+    const subscription = chatContext.subscribe(id, handleNewMessage);
 
     get<Message[]>(ApiRoute.CHAT(), { groupId: id })
       .then(setMessages)

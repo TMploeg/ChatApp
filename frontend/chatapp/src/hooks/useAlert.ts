@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import AppContext from "../AppContext";
+import { NotificationContext } from "../context";
 import { Variant } from "react-bootstrap/esm/types";
 import {
   BsCheck2Circle,
@@ -9,7 +9,7 @@ import {
 } from "react-icons/bs";
 
 export default function useAlert() {
-  const { notifications } = useContext(AppContext);
+  const notificationContext = useContext(NotificationContext);
 
   return function alert(message: string, variant: Variant) {
     const icon =
@@ -23,7 +23,7 @@ export default function useAlert() {
         ? BsInfoCircle
         : undefined;
 
-    notifications.add({
+    notificationContext.add({
       id: "alert_" + Date.now().toString(),
       title: message,
       variant: variant,
