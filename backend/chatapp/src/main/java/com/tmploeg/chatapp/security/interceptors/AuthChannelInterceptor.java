@@ -49,7 +49,9 @@ public class AuthChannelInterceptor extends AuthInterceptor implements ChannelIn
       return null;
     }
 
-    accessor.setUser(() -> user.get().getUsername());
+    String username = user.get().getUsername();
+
+    accessor.setUser(() -> username);
 
     return message;
   }

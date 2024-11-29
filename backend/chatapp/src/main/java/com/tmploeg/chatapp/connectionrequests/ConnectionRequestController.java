@@ -4,6 +4,7 @@ import com.tmploeg.chatapp.ApiRoutes;
 import com.tmploeg.chatapp.connectionrequests.dtos.ConnectionRequestDTO;
 import com.tmploeg.chatapp.connectionrequests.dtos.NewConnectionRequestDTO;
 import com.tmploeg.chatapp.connectionrequests.dtos.UpdateConnectionRequestDTO;
+import com.tmploeg.chatapp.dtos.page.PageDTO;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
 import com.tmploeg.chatapp.exceptions.ForbiddenException;
 import com.tmploeg.chatapp.exceptions.NotFoundException;
@@ -15,8 +16,8 @@ import com.tmploeg.chatapp.users.UserService;
 import jakarta.transaction.Transactional;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,63 +32,28 @@ public class ConnectionRequestController {
   private final AuthenticationProvider authenticationProvider;
 
   @GetMapping
-  public List<ConnectionRequestDTO> getConnectionRequests(
+  public PageDTO<ConnectionRequestDTO> getConnectionRequests(
       @RequestParam(name = "state", defaultValue = "") String[] states,
-      @RequestParam(name = "direction", required = false) String direction) {
-    ConnectionRequestDirection parsedDirection = parseDirection(direction);
-    List<ConnectionRequestState> parsedStates = parseStates(states);
-    User user = authenticationProvider.getAuthenticatedUser();
-
-    Specification<ConnectionRequest> specification =
-        switch (parsedDirection) {
-          case INCOMING ->
-              requestSpecification(user, ConnectionRequestDirection.INCOMING, parsedStates);
-          case OUTGOING ->
-              maskedRequestSpecification(user, ConnectionRequestDirection.OUTGOING, parsedStates);
-          case TWO_WAY ->
-              Specification.anyOf(
-                  requestSpecification(user, ConnectionRequestDirection.INCOMING, parsedStates),
-                  maskedRequestSpecification(
-                      user, ConnectionRequestDirection.OUTGOING, parsedStates));
-        };
-
-    return connectionRequestService
-        .filterAll(
-            ConnectionRequestSpecificationFactory.orderedByOppositeUserAsc(specification, user))
-        .stream()
-        .map(request -> ConnectionRequestDTO.from(request, user))
-        .toList();
-  }
-
-  private Specification<ConnectionRequest> requestSpecification(
-      User user, ConnectionRequestDirection direction, Collection<ConnectionRequestState> states) {
-    List<Specification<ConnectionRequest>> specifications = new ArrayList<>();
-
-    specifications.add(ConnectionRequestSpecificationFactory.hasUser(user, direction));
-
-    if (!states.isEmpty()) {
-      specifications.add(ConnectionRequestSpecificationFactory.inState(states));
+      @RequestParam(name = "direction", required = false) String direction,
+      Pageable pageable) {
+    if (pageable.getPageNumber() < 0) {
+      throw new BadRequestException("page must be greater than or equal to 0");
+    }
+    if (pageable.getPageSize() < 1) {
+      throw new BadRequestException("size must be greater than or equal to 1");
     }
 
-    return Specification.allOf(specifications);
-  }
+    User user = authenticationProvider.getAuthenticatedUser();
 
-  private Specification<ConnectionRequest> maskedRequestSpecification(
-      User user, ConnectionRequestDirection direction, Collection<ConnectionRequestState> states) {
-    return requestSpecification(user, direction, maskIgnored(states));
-  }
+    Page<ConnectionRequest> requests =
+        connectionRequestService.findAll(
+            (specificationConfigurer -> {
+              specificationConfigurer.hasUser(user, parseDirection(direction));
+              specificationConfigurer.inState(parseStates(states));
+            }),
+            pageable);
 
-  private Sort getSort(ConnectionRequestDirection direction) {
-    String connectorUsernameProperty = "connector.username";
-    String connecteeUsernameProperty = "connectee.username";
-
-    return switch (direction) {
-      case INCOMING -> Sort.by(Sort.Order.asc(connectorUsernameProperty));
-      case OUTGOING -> Sort.by(Sort.Order.asc(connecteeUsernameProperty));
-      case TWO_WAY ->
-          Sort.by(
-              Sort.Order.asc(connectorUsernameProperty), Sort.Order.asc(connecteeUsernameProperty));
-    };
+    return PageDTO.from(requests, (request) -> ConnectionRequestDTO.from(request, user));
   }
 
   private ConnectionRequestDirection parseDirection(String direction) {
@@ -115,30 +81,19 @@ public class ConnectionRequestController {
     return targetStates;
   }
 
-  private List<ConnectionRequestState> maskIgnored(Collection<ConnectionRequestState> states) {
-    List<ConnectionRequestState> newStates = new ArrayList<>(states);
-    if (newStates.contains(ConnectionRequestState.SEEN)) {
-      if (!newStates.contains(ConnectionRequestState.IGNORED)) {
-        newStates.add(ConnectionRequestState.IGNORED);
-      }
-    } else {
-      newStates.remove(ConnectionRequestState.IGNORED);
-    }
-
-    return newStates;
-  }
-
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  // TODO rename connecteeUsername to subject
   public void sendConnectionRequest(@RequestBody NewConnectionRequestDTO connectionRequestDTO) {
-    User connector = authenticationProvider.getAuthenticatedUser();
-
     if (connectionRequestDTO.connecteeUsername() == null) {
       throw new BadRequestException("connecteeUsername is required");
     }
     if (connectionRequestDTO.connecteeUsername().isBlank()) {
       throw new BadRequestException("connecteeUsername can't be blank");
     }
+
+    User connector = authenticationProvider.getAuthenticatedUser();
+
     if (connector.getUsername().equals(connectionRequestDTO.connecteeUsername())) {
       throw new BadRequestException("can't send connection request to self");
     }
@@ -152,15 +107,8 @@ public class ConnectionRequestController {
                         "user '" + connectionRequestDTO.connecteeUsername() + "' does not exist"));
 
     // TODO enable users to resend requests after time has passed
-    Specification<ConnectionRequest> connectorSpecification =
-        ConnectionRequestSpecificationFactory.hasUser(
-            connector, ConnectionRequestDirection.OUTGOING);
-    Specification<ConnectionRequest> connecteeSpecification =
-        ConnectionRequestSpecificationFactory.hasUser(
-            connectee, ConnectionRequestDirection.INCOMING);
-
-    if (connectionRequestService.exists(connectorSpecification.and(connecteeSpecification))) {
-      throw new BadRequestException("request to user already exists");
+    if (connectionRequestService.existsForConnectorAndConnectee(connector, connectee)) {
+      throw new BadRequestException("request to subject already exists");
     }
 
     ConnectionRequest request = connectionRequestService.save(connector, connectee);
@@ -179,10 +127,11 @@ public class ConnectionRequestController {
 
       ConnectionRequest request =
           connectionRequestService
-              .filterById(
-                  id,
-                  ConnectionRequestSpecificationFactory.hasUser(
-                      user, ConnectionRequestDirection.TWO_WAY))
+              .findOne(
+                  (configurer) -> {
+                    configurer.hasId(id);
+                    configurer.hasUser(user, ConnectionRequestDirection.TWO_WAY);
+                  })
               .orElseThrow(NotFoundException::new);
 
       ConnectionRequestState newState =

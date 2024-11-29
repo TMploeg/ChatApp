@@ -15,9 +15,11 @@ public class ConnectionRequest {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @ManyToOne private User connector;
+  @ManyToOne(fetch = FetchType.LAZY)
+  private User connector;
 
-  @ManyToOne private User connectee;
+  @ManyToOne(fetch = FetchType.LAZY)
+  private User connectee;
 
   @Enumerated(EnumType.ORDINAL)
   @Setter

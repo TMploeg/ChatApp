@@ -7,7 +7,6 @@ import com.tmploeg.chatapp.security.AuthenticationProvider;
 import com.tmploeg.chatapp.users.User;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,17 +24,14 @@ public class CheckinController {
   public CheckinDTO checkin() {
     User user = authenticationProvider.getAuthenticatedUser();
 
-    List<ConnectionRequestDTO> newRequests =
-        connectionRequestService
-            .filterAll(
-                Specification.allOf(
-                    ConnectionRequestSpecificationFactory.hasUser(
-                        user, ConnectionRequestDirection.INCOMING),
-                    ConnectionRequestSpecificationFactory.inState(ConnectionRequestState.SEND)))
-            .stream()
-            .map(request -> ConnectionRequestDTO.from(request, user))
-            .toList();
+    List<ConnectionRequest> newRequests =
+        connectionRequestService.findAll(
+            (configurer) -> {
+              configurer.hasUser(user, ConnectionRequestDirection.INCOMING);
+              configurer.inState(ConnectionRequestState.SEND);
+            });
 
-    return new CheckinDTO(newRequests);
+    return new CheckinDTO(
+        newRequests.stream().map(request -> ConnectionRequestDTO.from(request, user)).toList());
   }
 }

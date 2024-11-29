@@ -18,7 +18,7 @@ public class Seeder implements CommandLineRunner {
   private final UserRepository userRepository;
   private final ConnectionRequestRepository connectionRequestRepository;
 
-  private static final int SEED_USER_COUNT = 20;
+  private static final int SEED_USER_COUNT = 200;
 
   @Override
   public void run(String... args) throws Exception {
@@ -50,19 +50,24 @@ public class Seeder implements CommandLineRunner {
     ConnectionRequestState[] states = ConnectionRequestState.values();
     List<ConnectionRequest> requests = new ArrayList<>();
 
+    User user0 =
+        userRepository
+            .findById("testuser_0")
+            .orElseThrow(() -> new RuntimeException("user not found"));
+
     for (int i = 0; i < users.size() - 1; i++) {
-      for (int j = i + 1; j < users.size(); j++) {
-        if (r.nextDouble() > 0.5) {
-          continue;
-        }
-
-        boolean direction = r.nextBoolean();
-
-        ConnectionRequest request =
-            new ConnectionRequest(users.get(direction ? i : j), users.get(direction ? j : i));
-        request.setState(states[r.nextInt(0, states.length)]);
-        requests.add(request);
+      if (r.nextDouble() > 0.75) {
+        continue;
       }
+
+      User current = users.get(i);
+
+      User connector = r.nextBoolean() ? user0 : current;
+      User connectee = connector == user0 ? current : user0;
+
+      ConnectionRequest request = new ConnectionRequest(connector, connectee);
+      request.setState(states[r.nextInt(0, states.length)]);
+      requests.add(request);
     }
 
     connectionRequestRepository.saveAll(requests);

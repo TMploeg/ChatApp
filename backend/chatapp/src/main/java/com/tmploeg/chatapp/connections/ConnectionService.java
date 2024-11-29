@@ -1,14 +1,10 @@
 package com.tmploeg.chatapp.connections;
 
-import com.tmploeg.chatapp.connectionrequests.ConnectionRequestDirection;
-import com.tmploeg.chatapp.connectionrequests.ConnectionRequestService;
-import com.tmploeg.chatapp.connectionrequests.ConnectionRequestSpecificationFactory;
-import com.tmploeg.chatapp.connectionrequests.ConnectionRequestState;
+import com.tmploeg.chatapp.connectionrequests.*;
 import com.tmploeg.chatapp.users.User;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,13 +12,14 @@ import org.springframework.stereotype.Service;
 public class ConnectionService {
   private final ConnectionRequestService connectionRequestService;
 
+  // TODO pagination?
   public Set<User> getConnectedUsers(User user) {
     return connectionRequestService
-        .filterAll(
-            Specification.allOf(
-                ConnectionRequestSpecificationFactory.hasUser(
-                    user, ConnectionRequestDirection.TWO_WAY),
-                ConnectionRequestSpecificationFactory.inState(ConnectionRequestState.ACCEPTED)))
+        .findAll(
+            (specificationConfigurer) -> {
+              specificationConfigurer.hasUser(user, ConnectionRequestDirection.TWO_WAY);
+              specificationConfigurer.inState(ConnectionRequestState.ACCEPTED);
+            })
         .stream()
         .map(
             request ->

@@ -1,6 +1,5 @@
 package com.tmploeg.chatapp.security.interceptors;
 
-import com.tmploeg.chatapp.security.Authentication;
 import com.tmploeg.chatapp.security.Public;
 import com.tmploeg.chatapp.security.jwt.JWTService;
 import com.tmploeg.chatapp.users.User;
@@ -45,12 +44,11 @@ public class AuthHandlerInterceptor extends AuthInterceptor implements HandlerIn
 
     if (user.isEmpty()) {
       response.sendError(HttpStatus.UNAUTHORIZED.value());
-      log.info("blocked unauthorized request");
+
       return false;
     }
 
-    Authentication auth = () -> user.get().getUsername();
-    request.setAttribute(authAttributeName, auth);
+    request.setAttribute(authAttributeName, user.get());
 
     return true;
   }

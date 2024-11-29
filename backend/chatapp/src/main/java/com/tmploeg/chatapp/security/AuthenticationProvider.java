@@ -2,7 +2,6 @@ package com.tmploeg.chatapp.security;
 
 import com.tmploeg.chatapp.exceptions.UnauthorizedException;
 import com.tmploeg.chatapp.users.User;
-import com.tmploeg.chatapp.users.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,8 +16,6 @@ public class AuthenticationProvider {
   @Value("${app.request-auth-attr-name}")
   private String authAttributeName;
 
-  private final UserService userService;
-
   public User getAuthenticatedUser() {
     RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
     if (attributes == null) {
@@ -29,11 +26,19 @@ public class AuthenticationProvider {
     Object authAttribute =
         attributes.getAttribute(authAttributeName, RequestAttributes.SCOPE_REQUEST);
 
-    if (!(authAttribute instanceof Authentication auth)) {
-      log.warn("attempted to retrieve authentication when user is not authenticated");
+    if (authAttribute == null) {
       throw new UnauthorizedException();
     }
 
-    return userService.findByUsername(auth.getUsername()).orElseThrow(UnauthorizedException::new);
+    if (!(authAttribute instanceof User user)) {
+      log.warn(
+          "invalid authentication type: '{}', expected: '{}'",
+          authAttribute.getClass().getSimpleName(),
+          User.class.getSimpleName());
+
+      throw new UnauthorizedException();
+    }
+
+    return user;
   }
 }
