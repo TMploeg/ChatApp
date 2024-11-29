@@ -1,3 +1,3 @@
 package com.tmploeg.chatapp.connectionrequests.dtos;
 
-public record NewConnectionRequestDTO(String connecteeUsername) {}
+public record NewConnectionRequestDTO(String subject) {}

@@ -74,7 +74,7 @@ export default function SendConnectionRequestModal({ show, onHide }: Props) {
     }
 
     post<void>(ApiRoute.CONNECTION_REQUESTS(), {
-      connecteeUsername: targetUsername,
+      subject: targetUsername,
     })
       .then(() => {
         onHide?.();

@@ -83,28 +83,27 @@ public class ConnectionRequestController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  // TODO rename connecteeUsername to subject
   public void sendConnectionRequest(@RequestBody NewConnectionRequestDTO connectionRequestDTO) {
-    if (connectionRequestDTO.connecteeUsername() == null) {
-      throw new BadRequestException("connecteeUsername is required");
+    if (connectionRequestDTO.subject() == null) {
+      throw new BadRequestException("subject is required");
     }
-    if (connectionRequestDTO.connecteeUsername().isBlank()) {
-      throw new BadRequestException("connecteeUsername can't be blank");
+    if (connectionRequestDTO.subject().isBlank()) {
+      throw new BadRequestException("subject can't be blank");
     }
 
     User connector = authenticationProvider.getAuthenticatedUser();
 
-    if (connector.getUsername().equals(connectionRequestDTO.connecteeUsername())) {
+    if (connector.getUsername().equals(connectionRequestDTO.subject())) {
       throw new BadRequestException("can't send connection request to self");
     }
 
     User connectee =
         userService
-            .findByUsername(connectionRequestDTO.connecteeUsername())
+            .findByUsername(connectionRequestDTO.subject())
             .orElseThrow(
                 () ->
                     new BadRequestException(
-                        "user '" + connectionRequestDTO.connecteeUsername() + "' does not exist"));
+                        "user '" + connectionRequestDTO.subject() + "' does not exist"));
 
     // TODO enable users to resend requests after time has passed
     if (connectionRequestService.existsForConnectorAndConnectee(connector, connectee)) {
