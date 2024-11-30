@@ -15,11 +15,6 @@ const DEFAULT_CONTEXT_DATA = {
       };
     },
   },
-  visibility: {
-    visible: false,
-    show: () => contextNotSetError("visibility.show"),
-    hide: () => contextNotSetError("visibility.hide"),
-  },
 };
 
 function contextNotSetError(name?: string) {
@@ -33,12 +28,6 @@ export const NotificationContext = createContext<NotificationContextData>(
 export const SubscriptionContext = createContext<SubscriptionContextData>(
   DEFAULT_CONTEXT_DATA.subscription
 );
-
-export const ConnectionsVisibilityContext =
-  createContext<VisibilityContextData>(DEFAULT_CONTEXT_DATA.visibility);
-
-export const ConnectionRequestsVisibilityContext =
-  createContext<VisibilityContextData>(DEFAULT_CONTEXT_DATA.visibility);
 
 export interface NotificationContextData {
   notifications: NotificationData[];
@@ -54,10 +43,4 @@ export interface SubscriptionContextData {
 
 export interface Subscription {
   unsubscribe: () => void;
-}
-
-export interface VisibilityContextData {
-  visible: boolean;
-  show: () => void;
-  hide: () => void;
 }

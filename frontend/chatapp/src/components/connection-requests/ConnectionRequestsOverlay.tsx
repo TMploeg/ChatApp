@@ -1,70 +1,34 @@
 import { BsPersonFill } from "react-icons/bs";
 import { ConnectionRequest } from "../../models/connection-request";
 import { Button, Modal } from "react-bootstrap";
-import { useAlert, useApi, useConnectionRequests } from "../../hooks";
+import { useAlert, useConnectionRequests } from "../../hooks";
 import ConnectionRequestState from "../../enums/ConnectionRequestState";
-import ApiRoute from "../../enums/ApiRoute";
-import { useContext, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ClipLoader } from "react-spinners";
-import ConnectionRequestDirection from "../../enums/ConnectionRequestDirection";
 import { Variant } from "react-bootstrap/esm/types";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
 import "./ConnectionRequests.scss";
-import Page from "../../models/page";
-
-const VISIBLE_STATES: ConnectionRequestState[] = [
-  ConnectionRequestState.SEND,
-  ConnectionRequestState.SEEN,
-];
 
 interface Props {
   show: boolean;
   onHide: () => void;
-  onRequestAccepted?: (request: ConnectionRequest) => void;
+  connectionRequests: ConnectionRequest[];
+  onRequestRemoved: (request: ConnectionRequest) => void;
 }
 //TODO implement pagination
-export default function ConnectionRequests({
+export default function ConnectionRequestsOverlay({
   show,
   onHide,
-  onRequestAccepted,
+  connectionRequests,
+  onRequestRemoved,
 }: Props) {
-  const { get } = useApi();
   const { updateState } = useConnectionRequests();
-
-  const [requests, setRequests] = useState<ConnectionRequest[]>();
 
   const alert = useAlert();
 
-  // const connectionRequestContext = useContext(ConnectionRequestContext);
-
   useEffect(() => {
-    get<Page<ConnectionRequest>>(ApiRoute.CONNECTION_REQUESTS(), {
-      state: VISIBLE_STATES.join(","),
-      direction: ConnectionRequestDirection.RECEIVED,
-    }).then((requests) => setRequests(requests.page));
-
-    // const subscription = connectionRequestContext.subscribe(
-    //   "ConnectionRequests",
-    //   (request) => {
-    //     if (
-    //       request.state.toUpperCase() !==
-    //       ConnectionRequestState.SEND.toUpperCase()
-    //     ) {
-    //       return;
-    //     }
-
-    //     handleNewConnectionRequest(request);
-    //   }
-    // );
-
-    // return () => {
-    //   subscription.unsubscribe();
-    // };
-  }, []);
-
-  useEffect(() => {
-    if (requests) {
-      requests
+    if (connectionRequests) {
+      connectionRequests
         .filter((request) => request.state === ConnectionRequestState.SEND)
         .forEach((request) =>
           updateState(request, ConnectionRequestState.SEEN)
@@ -79,9 +43,9 @@ export default function ConnectionRequests({
       </Modal.Header>
       <Modal.Body>
         <div className="connection-requests-container">
-          {requests !== undefined ? (
+          {connectionRequests !== undefined ? (
             <SeperatedList
-              items={requests}
+              items={connectionRequests}
               ItemRenderElement={({ item: request }) => (
                 <RequestView
                   request={request}
@@ -103,21 +67,10 @@ export default function ConnectionRequests({
   ) {
     updateState(request, state)
       .then(() => {
-        removeRequest(request);
+        onRequestRemoved(request);
         sendRequestInteractionSuccesAlert(state);
-        onRequestAccepted?.(request);
       })
       .catch((error) => console.error(error));
-  }
-
-  function removeRequest(request: ConnectionRequest) {
-    setRequests((requests) => {
-      if (!requests) {
-        return undefined;
-      }
-
-      return requests.filter((r) => r.id !== request.id);
-    });
   }
 
   function sendRequestInteractionSuccesAlert(
@@ -139,13 +92,6 @@ export default function ConnectionRequests({
     }
 
     alert(data.message, data.variant);
-  }
-
-  function handleNewConnectionRequest(request: ConnectionRequest) {
-    setRequests((requests) => {
-      requests?.unshift(request);
-      return requests;
-    });
   }
 }
 

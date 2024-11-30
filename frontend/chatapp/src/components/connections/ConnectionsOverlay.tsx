@@ -1,59 +1,31 @@
 import { Button, Modal } from "react-bootstrap";
-import { useApi, useAppNavigate, useChatGroups } from "../../hooks";
+import { useAppNavigate, useChatGroups } from "../../hooks";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
-import { useContext, useEffect, useState } from "react";
+import { useState } from "react";
 import Connection from "../../models/connection";
 import { ClipLoader } from "react-spinners";
-import ApiRoute from "../../enums/ApiRoute";
 import SendConnectionRequestModal from "./send-connection-request-modal/SendConnectionRequestModal";
 import "./Connections.scss";
 import ConnectionView from "./ConnectionView";
 import { BsPersonPlusFill } from "react-icons/bs";
-import ConnectionRequestState from "../../enums/ConnectionRequestState";
 import AppRoute from "../../enums/AppRoute";
 
 interface Props {
   show: boolean;
   onHide: () => void;
-  newConnectionStream?: NewConnectionStream;
+  connections: Connection[];
 }
-export default function Connections({
+export default function ConnectionsOverlay({
   show,
   onHide,
-  newConnectionStream,
+  connections,
 }: Props) {
-  const [connections, setConnections] = useState<Connection[]>();
   const [addUserModalVisible, setAddUserModalVisible] =
     useState<boolean>(false);
 
-  const { get } = useApi();
   const { createPrivateGroup } = useChatGroups();
 
-  // const connectionRequestContext = useContext(ConnectionRequestContext);
-
   const navigate = useAppNavigate();
-
-  useEffect(() => {
-    get<Connection[]>(ApiRoute.CONNECTIONS()).then(setConnections);
-
-    // const subscription = connectionRequestContext.subscribe(
-    //   "Connections",
-    //   (request) => {
-    //     if (
-    //       request.state.toUpperCase() ===
-    //       ConnectionRequestState.ACCEPTED.toUpperCase()
-    //     ) {
-    //       handleNewConnection({
-    //         username: request.subject,
-    //       });
-    //     }
-    //   }
-    // );
-
-    // newConnectionStream?.subscribe(handleNewConnection);
-    //
-    // return () => subscription.unsubscribe();
-  }, []);
 
   return (
     <Modal show={show} onHide={onHide} fullscreen>
@@ -94,21 +66,10 @@ export default function Connections({
     </Modal>
   );
 
-  function handleNewConnection(connection: Connection) {
-    setConnections((connections) => {
-      connections?.unshift(connection);
-      return connections;
-    });
-  }
-
   function handleConnectionClicked(connection: Connection) {
     onHide();
     createPrivateGroup(connection.username).then((createdGroup) =>
       navigate(AppRoute.CHAT(createdGroup.getId()))
     );
   }
-}
-
-export interface NewConnectionStream {
-  subscribe(callback: (connection: Connection) => void): void;
 }
