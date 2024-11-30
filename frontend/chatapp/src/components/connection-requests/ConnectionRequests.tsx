@@ -10,7 +10,6 @@ import ConnectionRequestDirection from "../../enums/ConnectionRequestDirection";
 import { Variant } from "react-bootstrap/esm/types";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
 import "./ConnectionRequests.scss";
-import { ConnectionRequestContext } from "../../context";
 import Page from "../../models/page";
 
 const VISIBLE_STATES: ConnectionRequestState[] = [
@@ -36,34 +35,31 @@ export default function ConnectionRequests({
 
   const alert = useAlert();
 
-  const connectionRequestContext = useContext(ConnectionRequestContext);
+  // const connectionRequestContext = useContext(ConnectionRequestContext);
 
   useEffect(() => {
     get<Page<ConnectionRequest>>(ApiRoute.CONNECTION_REQUESTS(), {
       state: VISIBLE_STATES.join(","),
       direction: ConnectionRequestDirection.RECEIVED,
-    }).then((requests) => {
-      console.log(requests.meta);
-      setRequests(requests.page);
-    });
+    }).then((requests) => setRequests(requests.page));
 
-    const subscription = connectionRequestContext.subscribe(
-      "ConnectionRequests",
-      (request) => {
-        if (
-          request.state.toUpperCase() !==
-          ConnectionRequestState.SEND.toUpperCase()
-        ) {
-          return;
-        }
+    // const subscription = connectionRequestContext.subscribe(
+    //   "ConnectionRequests",
+    //   (request) => {
+    //     if (
+    //       request.state.toUpperCase() !==
+    //       ConnectionRequestState.SEND.toUpperCase()
+    //     ) {
+    //       return;
+    //     }
 
-        handleNewConnectionRequest(request);
-      }
-    );
+    //     handleNewConnectionRequest(request);
+    //   }
+    // );
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    // return () => {
+    //   subscription.unsubscribe();
+    // };
   }, []);
 
   useEffect(() => {

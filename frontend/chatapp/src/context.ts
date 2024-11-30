@@ -1,8 +1,6 @@
 import { createContext } from "react";
 import NotificationData from "./models/notification-data";
-import { Message } from "./models";
-import { ConnectionRequest } from "./models/connection-request";
-import { ChatGroupData } from "./models/chat-group";
+import StompBroker from "./enums/StompBroker";
 
 const DEFAULT_CONTEXT_DATA = {
   notifications: {
@@ -32,16 +30,7 @@ export const NotificationContext = createContext<NotificationContextData>(
   DEFAULT_CONTEXT_DATA.notifications
 );
 
-export const ChatContext = createContext<ChatContextData>(
-  DEFAULT_CONTEXT_DATA.subscription
-);
-
-export const ConnectionRequestContext =
-  createContext<ConnectionRequestsContextData>(
-    DEFAULT_CONTEXT_DATA.subscription
-  );
-
-export const ChatGroupsContext = createContext<ChatGroupsContextData>(
+export const SubscriptionContext = createContext<SubscriptionContextData>(
   DEFAULT_CONTEXT_DATA.subscription
 );
 
@@ -56,21 +45,12 @@ export interface NotificationContextData {
   add: (notification: NotificationData) => void;
 }
 
-export type ChatContextData = SubscriptionContextData<Message>;
-
-export type ConnectionRequestsContextData =
-  SubscriptionContextData<ConnectionRequest>;
-
-export type ChatGroupsContextData = SubscriptionContextData<ChatGroupData>;
-
-interface SubscriptionContextData<T> {
-  subscribe: SubscribeFunc<T>;
+export interface SubscriptionContextData {
+  subscribe: <TData>(
+    broker: StompBroker,
+    callback: (data: TData) => void
+  ) => Subscription;
 }
-
-type SubscribeFunc<TData> = (
-  id: string,
-  callback: (data: TData) => void
-) => Subscription;
 
 export interface Subscription {
   unsubscribe: () => void;

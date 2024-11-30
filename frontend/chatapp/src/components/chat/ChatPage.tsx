@@ -6,7 +6,8 @@ import { useApi, useAppNavigate } from "../../hooks";
 import ApiRoute from "../../enums/ApiRoute";
 import { useParams } from "react-router-dom";
 import AppRoute from "../../enums/AppRoute";
-import { ChatContext } from "../../context";
+import { SubscriptionContext } from "../../context";
+import StompBroker from "../../enums/StompBroker";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>();
@@ -15,7 +16,7 @@ export default function ChatPage() {
   const navigate = useAppNavigate();
   const { id } = useParams();
 
-  const chatContext = useContext(ChatContext);
+  const subscriptions = useContext(SubscriptionContext);
 
   if (!id) {
     navigate(AppRoute.HOME);
@@ -23,7 +24,10 @@ export default function ChatPage() {
   }
 
   useEffect(() => {
-    const subscription = chatContext.subscribe(id, handleNewMessage);
+    const subscription = subscriptions.subscribe<Message>(
+      StompBroker.CHAT,
+      (message) => handleNewMessage(message)
+    );
 
     get<Message[]>(ApiRoute.CHAT(), { groupId: id })
       .then(setMessages)
@@ -53,6 +57,10 @@ export default function ChatPage() {
   );
 
   function handleNewMessage(message: Message) {
+    if (id != message.groupId) {
+      return;
+    }
+
     setMessages((oldMessages) => {
       if (!oldMessages) {
         return undefined;

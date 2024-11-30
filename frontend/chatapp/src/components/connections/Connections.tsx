@@ -11,7 +11,6 @@ import ConnectionView from "./ConnectionView";
 import { BsPersonPlusFill } from "react-icons/bs";
 import ConnectionRequestState from "../../enums/ConnectionRequestState";
 import AppRoute from "../../enums/AppRoute";
-import { ConnectionRequestContext } from "../../context";
 
 interface Props {
   show: boolean;
@@ -30,30 +29,30 @@ export default function Connections({
   const { get } = useApi();
   const { createPrivateGroup } = useChatGroups();
 
-  const connectionRequestContext = useContext(ConnectionRequestContext);
+  // const connectionRequestContext = useContext(ConnectionRequestContext);
 
   const navigate = useAppNavigate();
 
   useEffect(() => {
     get<Connection[]>(ApiRoute.CONNECTIONS()).then(setConnections);
 
-    const subscription = connectionRequestContext.subscribe(
-      "Connections",
-      (request) => {
-        if (
-          request.state.toUpperCase() ===
-          ConnectionRequestState.ACCEPTED.toUpperCase()
-        ) {
-          handleNewConnection({
-            username: request.subject,
-          });
-        }
-      }
-    );
+    // const subscription = connectionRequestContext.subscribe(
+    //   "Connections",
+    //   (request) => {
+    //     if (
+    //       request.state.toUpperCase() ===
+    //       ConnectionRequestState.ACCEPTED.toUpperCase()
+    //     ) {
+    //       handleNewConnection({
+    //         username: request.subject,
+    //       });
+    //     }
+    //   }
+    // );
 
-    newConnectionStream?.subscribe(handleNewConnection);
-
-    return () => subscription.unsubscribe();
+    // newConnectionStream?.subscribe(handleNewConnection);
+    //
+    // return () => subscription.unsubscribe();
   }, []);
 
   return (

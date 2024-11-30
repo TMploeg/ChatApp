@@ -1,35 +1,30 @@
 import { useState } from "react";
 import {
   NotificationContext,
-  ChatContext,
-  ConnectionRequestContext,
-  ChatGroupsContext,
+  SubscriptionContext,
   Subscription,
   NotificationContextData,
-  ChatContextData,
-  ConnectionRequestsContextData,
-  ChatGroupsContextData,
+  SubscriptionContextData,
   ConnectionsVisibilityContext,
   ConnectionRequestsVisibilityContext,
   VisibilityContextData,
 } from "./context";
-import SubscriptionName from "./enums/SubscriptionName";
 import NotificationData from "./models/notification-data";
+import StompBroker from "./enums/StompBroker";
 
 interface Props {
   children: any;
   notifications: NotificationData[];
-  onSubscribed: (
-    id: string,
-    callback: (data: any) => void,
-    subscriptionName: SubscriptionName
+  onSubscribe: <TData>(
+    broker: StompBroker,
+    callback: (data: TData) => void
   ) => Subscription;
   onNotificationAdded: (notification: NotificationData) => void;
 }
 export default function ContextProviders({
   children,
   notifications,
-  onSubscribed,
+  onSubscribe,
   onNotificationAdded,
 }: Props) {
   const [connectionsVisible, setConnectionsVisible] = useState<boolean>(false);
@@ -38,23 +33,17 @@ export default function ContextProviders({
 
   return (
     <NotificationContext.Provider value={notificationContextValue()}>
-      <ChatContext.Provider value={chatContextValue()}>
-        <ConnectionRequestContext.Provider
-          value={connectionRequestsContextValue()}
+      <SubscriptionContext.Provider value={subscriptionContextValue()}>
+        <ConnectionsVisibilityContext.Provider
+          value={connectionsVisibilityContextValue()}
         >
-          <ChatGroupsContext.Provider value={chatGroupsContextValue()}>
-            <ConnectionsVisibilityContext.Provider
-              value={connectionsVisibilityContextValue()}
-            >
-              <ConnectionRequestsVisibilityContext.Provider
-                value={connectionRequestsVisibilityContextData()}
-              >
-                {children}
-              </ConnectionRequestsVisibilityContext.Provider>
-            </ConnectionsVisibilityContext.Provider>
-          </ChatGroupsContext.Provider>
-        </ConnectionRequestContext.Provider>
-      </ChatContext.Provider>
+          <ConnectionRequestsVisibilityContext.Provider
+            value={connectionRequestsVisibilityContextData()}
+          >
+            {children}
+          </ConnectionRequestsVisibilityContext.Provider>
+        </ConnectionsVisibilityContext.Provider>
+      </SubscriptionContext.Provider>
     </NotificationContext.Provider>
   );
 
@@ -65,24 +54,9 @@ export default function ContextProviders({
     };
   }
 
-  function chatContextValue(): ChatContextData {
+  function subscriptionContextValue(): SubscriptionContextData {
     return {
-      subscribe: (id, callback) =>
-        onSubscribed(id, callback, SubscriptionName.CHAT),
-    };
-  }
-
-  function connectionRequestsContextValue(): ConnectionRequestsContextData {
-    return {
-      subscribe: (id, callback) =>
-        onSubscribed(id, callback, SubscriptionName.CONNECTION_REQUESTS),
-    };
-  }
-
-  function chatGroupsContextValue(): ChatGroupsContextData {
-    return {
-      subscribe: (id, callback) =>
-        onSubscribed(id, callback, SubscriptionName.CHAT_GROUPS),
+      subscribe: onSubscribe,
     };
   }
 

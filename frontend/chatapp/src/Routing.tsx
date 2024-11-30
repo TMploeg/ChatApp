@@ -12,40 +12,47 @@ interface Props {
   onLogin: () => void;
 }
 export default function Routing({ loggedIn, connected, onLogin }: Props) {
+  if (!loggedIn) {
+    return <UnauthenticatedRouting onLogin={onLogin} />;
+  }
+
+  return <DefaultAppRouting connected={connected} />;
+}
+
+interface DefaultAppRoutingProps {
+  connected: boolean;
+}
+function DefaultAppRouting({ connected }: DefaultAppRoutingProps) {
+  return (
+    <LoadingPage loaded={connected}>
+      <Routes>
+        <Route path={AppRoute.HOME.value} element={<HomePage />} />
+        <Route path={AppRoute.CHAT(":id").value} element={<ChatPage />} />
+        <Route path={AppRoute.ANY.value} element={<Navigate to="" />} />
+      </Routes>
+    </LoadingPage>
+  );
+}
+
+interface UnauthenticatedRoutingProps {
+  onLogin: () => void;
+}
+function UnauthenticatedRouting({ onLogin }: UnauthenticatedRoutingProps) {
   return (
     <Routes>
-      {loggedIn ? (
-        <>
-          <Route path={AppRoute.HOME.value} element={<HomePage />} />
-          <Route
-            path={AppRoute.CHAT(":id").value}
-            element={
-              <LoadingPage loaded={connected}>
-                <ChatPage />
-              </LoadingPage>
-            }
-          />
-        </>
-      ) : (
-        <>
-          <Route
-            path={AppRoute.HOME.value}
-            element={<Navigate to={AppRoute.LOGIN.value} />}
-          />
-          <Route
-            path={AppRoute.LOGIN.value}
-            element={<LoginPage onLogin={onLogin} />}
-          />
-          <Route
-            path={AppRoute.REGISTER.value}
-            element={<RegisterPage onRegister={onLogin} />}
-          />
-        </>
-      )}
       <Route
-        path={AppRoute.ANY.value}
-        element={<Navigate to={AppRoute.HOME.value} />}
+        path={AppRoute.HOME.value}
+        element={<Navigate to={AppRoute.LOGIN.value} />}
       />
+      <Route
+        path={AppRoute.LOGIN.value}
+        element={<LoginPage onLogin={onLogin} />}
+      />
+      <Route
+        path={AppRoute.REGISTER.value}
+        element={<RegisterPage onRegister={onLogin} />}
+      />
+      <Route path={AppRoute.ANY.value} element={<Navigate to="" />} />
     </Routes>
   );
 }

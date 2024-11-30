@@ -8,13 +8,17 @@ import { ClipLoader } from "react-spinners";
 import { BsPeopleFill, BsPersonFill, BsPlusLg } from "react-icons/bs";
 import { IconBaseProps } from "react-icons";
 import AppRoute from "../../enums/AppRoute";
-import { ChatGroupsContext } from "../../context";
 import IconButton, { Size } from "../generic/icon-button/IconButton";
 import AddGroupChatDialog from "./add-group-chat-dialog/AddGroupChatDialog";
+import { SubscriptionContext } from "../../context";
+import StompBroker from "../../enums/StompBroker";
 
 const NAV_ICON_SIZE = 30;
 
-export default function ChatMenu() {
+interface Props {
+  connected: boolean;
+}
+export default function ChatMenu({ connected }: Props) {
   const [chatGroups, setChatGroups] = useState<ChatGroup[]>();
 
   const [addGroupChatDialogVisible, setAddGroupChatDialogVisible] =
@@ -23,17 +27,24 @@ export default function ChatMenu() {
   const { get } = useApi();
   const navigate = useAppNavigate();
 
-  const chatGroupsContext = useContext(ChatGroupsContext);
+  const subscriptions = useContext(SubscriptionContext);
 
   useEffect(() => {
+    if (!connected) {
+      return;
+    }
+
     get<ChatGroupData[]>(ApiRoute.CHAT_GROUPS()).then((groups) =>
       setChatGroups(groups.map((group) => new ChatGroup(group)))
     );
 
-    chatGroupsContext.subscribe("ChatMenu", (newGroup) =>
-      addChatGroup(new ChatGroup(newGroup))
+    const subscription = subscriptions.subscribe<ChatGroupData>(
+      StompBroker.CHAT_GROUPS,
+      (newGroup) => addChatGroup(new ChatGroup(newGroup))
     );
-  }, []);
+
+    return () => subscription.unsubscribe();
+  }, [connected]);
 
   return (
     <div className="chat-menu">

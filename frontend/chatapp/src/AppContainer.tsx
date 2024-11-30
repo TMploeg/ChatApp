@@ -1,14 +1,9 @@
 import { useEffect, useState } from "react";
 import NotificationData from "./models/notification-data";
 import { useStorage, useWebSocket } from "./hooks";
-import { JWT, Message } from "./models";
+import { JWT } from "./models";
 import { StorageLocation } from "./enums/StorageLocation";
-import StompBroker from "./enums/StompBroker";
-import { ConnectionRequest } from "./models/connection-request";
 import App from "./App";
-import { BsChatFill } from "react-icons/bs";
-import ChatGroup, { ChatGroupData } from "./models/chat-group";
-import SubscriptionName from "./enums/SubscriptionName";
 import ContextProviders from "./ContextProviders";
 
 const DEBUG_ENABLED: boolean = false;
@@ -20,12 +15,6 @@ export default function AppContainer() {
   const [connected, setConnected] = useState<boolean>(false);
   const [loggedIn, setLoggedIn] = useState<boolean>(!!getToken());
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
-  const [subscriptionMapping, setSubscriptionMapping] =
-    useState<SubscriptionMapping>({
-      CHAT: {},
-      CONNECTION_REQUESTS: {},
-      CHAT_GROUPS: {},
-    });
 
   const socket = useWebSocket();
 
@@ -50,7 +39,7 @@ export default function AppContainer() {
     <ContextProviders
       notifications={notifications}
       onNotificationAdded={handleNewNotification}
-      onSubscribed={addSubscriptionMapping}
+      onSubscribe={socket.subscribe}
     >
       <App
         loggedIn={loggedIn}
@@ -67,94 +56,44 @@ export default function AppContainer() {
 
   function handleConnected() {
     setConnected(true);
-
-    enableListeners();
   }
 
   function handleDisconnected() {
     setConnected(false);
 
     clearNotifications();
-    clearSubscriptionMappings();
   }
 
   function clearNotifications() {
     setNotifications([]);
   }
 
-  function enableListeners() {
-    socket.subscribe<Message>(StompBroker.CHAT, (message) =>
-      subscriptionMapping.CHAT[message.groupId]?.(message)
-    );
+  // function enableListeners() {
+  //   socket.subscribe<Message>(StompBroker.CHAT, (message) =>
+  //     subscriptionMapping.CHAT[message.groupId]?.(message)
+  //   );
 
-    socket.subscribe<ConnectionRequest>(
-      StompBroker.CONNECTION_REQUESTS,
-      (request) => {
-        Object.values(subscriptionMapping.CONNECTION_REQUESTS).forEach(
-          (subscription) => subscription(request)
-        );
-      }
-    );
+  //   socket.subscribe<ConnectionRequest>(
+  //     StompBroker.CONNECTION_REQUESTS,
+  //     (request) => {
+  //       Object.values(subscriptionMapping.CONNECTION_REQUESTS).forEach(
+  //         (subscription) => subscription(request)
+  //       );
+  //     }
+  //   );
 
-    socket.subscribe<ChatGroupData>(StompBroker.CHAT_GROUPS, (groupData) => {
-      const group = new ChatGroup(groupData);
+  //   socket.subscribe<ChatGroupData>(StompBroker.CHAT_GROUPS, (groupData) => {
+  //     const group = new ChatGroup(groupData);
 
-      Object.values(subscriptionMapping.CHAT_GROUPS).forEach((subscription) =>
-        subscription(group)
-      );
-
-      handleNewNotification({
-        id: "newgroup_" + group.getId(),
-        title: "Chat Groups",
-        icon: BsChatFill,
-        text: `New chat group: '${group.getName()}'`,
-        variant: "primary",
-      });
-    });
-  }
-
-  function addSubscriptionMapping<TData>(
-    id: string,
-    callback: (data: TData) => void,
-    subscriptionName: SubscriptionName
-  ) {
-    setSubscriptionMapping((mapping) => {
-      const subscription = mapping[subscriptionName];
-      if (subscription[id]) {
-        console.error("duplicate subscription mapping");
-      }
-      subscription[id] = callback;
-
-      const newMapping = { ...mapping };
-      newMapping[subscriptionName] = subscription;
-      return newMapping;
-    });
-
-    return {
-      unsubscribe: () =>
-        setSubscriptionMapping((mapping) => {
-          const subscription = mapping[subscriptionName];
-          if (!subscription[id]) {
-            return mapping;
-          }
-
-          delete subscription[id];
-
-          const newMapping = { ...mapping };
-          mapping[subscriptionName] = subscription;
-
-          return newMapping;
-        }),
-    };
-  }
-
-  function clearSubscriptionMappings() {
-    setSubscriptionMapping({
-      CHAT: {},
-      CONNECTION_REQUESTS: {},
-      CHAT_GROUPS: {},
-    });
-  }
+  //     handleNewNotification({
+  //       id: "newgroup_" + group.getId(),
+  //       title: "Chat Groups",
+  //       icon: BsChatFill,
+  //       text: `New chat group: '${group.getName()}'`,
+  //       variant: "primary",
+  //     });
+  //   });
+  // }
 
   function handleNewNotification(notification: NotificationData) {
     setNotifications((notifications) => {
@@ -172,8 +111,3 @@ export default function AppContainer() {
     });
   }
 }
-
-type SubscriptionMapping = Record<
-  keyof typeof SubscriptionName,
-  Record<string, (data: any) => void>
->;

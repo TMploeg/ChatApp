@@ -4,16 +4,18 @@ import "./App.scss";
 import Notification from "./components/notifications/Notification";
 import { ToastContainer } from "react-bootstrap";
 import {
-  ConnectionRequestContext,
   ConnectionRequestsVisibilityContext,
   NotificationContext,
   Subscription,
+  SubscriptionContext,
 } from "./context";
 import ChatMenu from "./components/chat-menu/ChatMenu";
 import Routing from "./Routing";
 import useNotification from "./hooks/useNotification";
 import NotificationData from "./models/notification-data";
 import { useCheckin } from "./hooks";
+import StompBroker from "./enums/StompBroker";
+import { ConnectionRequest } from "./models/connection-request";
 
 interface AppProps {
   loggedIn: boolean;
@@ -30,7 +32,7 @@ export default function App({
   onNewNotification,
 }: AppProps) {
   const notifications = useContext(NotificationContext);
-  const connectionRequests = useContext(ConnectionRequestContext);
+  const subscriptions = useContext(SubscriptionContext);
   const connectionRequestsVisibility = useContext(
     ConnectionRequestsVisibilityContext
   );
@@ -43,8 +45,6 @@ export default function App({
       return;
     }
 
-    const subscription = subscribeToConnectionRequests();
-
     getCheckinData().then((data) => {
       data.newConnectionRequests
         .map((request) =>
@@ -54,16 +54,25 @@ export default function App({
         )
         .forEach(onNewNotification);
     });
+  }, [loggedIn]);
+
+  useEffect(() => {
+    if (!connected) {
+      return;
+    }
+
+    const subscription = subscribeToConnectionRequests();
 
     return () => subscription.unsubscribe();
-  }, [loggedIn]);
+  }, [connected]);
+
   return (
     <div className="app-container">
       <Toolbar title="ChatApp" loggedIn={loggedIn} onLogout={onLogout} />
       <div className="app">
         {loggedIn && (
           <div className="app-menu">
-            <ChatMenu />
+            <ChatMenu connected={connected} />
           </div>
         )}
         <div className="app-content">
@@ -83,15 +92,18 @@ export default function App({
   );
 
   function subscribeToConnectionRequests(): Subscription {
-    return connectionRequests.subscribe("App", (request) => {
-      const notification: NotificationData = getConnectionRequestNotification(
-        request,
-        {
-          onClick: connectionRequestsVisibility.show,
-        }
-      );
+    return subscriptions.subscribe<ConnectionRequest>(
+      StompBroker.CONNECTION_REQUESTS,
+      (request) => {
+        const notification: NotificationData = getConnectionRequestNotification(
+          request,
+          {
+            onClick: connectionRequestsVisibility.show,
+          }
+        );
 
-      onNewNotification(notification);
-    });
+        onNewNotification(notification);
+      }
+    );
   }
 }
