@@ -96,19 +96,15 @@ public class ChatGroupController {
       chatGroupService.update(group);
     }
 
-    sendNewChatGroupMessage(group, groupCreator);
+    sendNewChatGroupMessage(group);
 
     URI uri = ucb.path("/api/v1/chatgroups/{id}").buildAndExpand(group.getId().toString()).toUri();
     return ResponseEntity.created(uri).body(ChatGroupDTO.from(group, groupCreator));
   }
 
-  private void sendNewChatGroupMessage(ChatGroup newGroup, User creator) {
-    List<User> recipients =
-        newGroup.getUsers().stream()
-            .filter(u -> !u.getUsername().equals(creator.getUsername()))
-            .toList();
+  private void sendNewChatGroupMessage(ChatGroup newGroup) {
 
-    for (User user : recipients) {
+    for (User user : newGroup.getUsers()) {
       messagingService.sendToUser(user, Broker.CHAT_GROUPS, ChatGroupDTO.from(newGroup, user));
     }
   }
