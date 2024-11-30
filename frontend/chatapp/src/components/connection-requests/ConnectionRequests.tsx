@@ -11,6 +11,7 @@ import { Variant } from "react-bootstrap/esm/types";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
 import "./ConnectionRequests.scss";
 import { ConnectionRequestContext } from "../../context";
+import Page from "../../models/page";
 
 const VISIBLE_STATES: ConnectionRequestState[] = [
   ConnectionRequestState.SEND,
@@ -22,6 +23,7 @@ interface Props {
   onHide: () => void;
   onRequestAccepted?: (request: ConnectionRequest) => void;
 }
+//TODO implement pagination
 export default function ConnectionRequests({
   show,
   onHide,
@@ -37,11 +39,12 @@ export default function ConnectionRequests({
   const connectionRequestContext = useContext(ConnectionRequestContext);
 
   useEffect(() => {
-    get<ConnectionRequest[]>(ApiRoute.CONNECTION_REQUESTS(), {
+    get<Page<ConnectionRequest>>(ApiRoute.CONNECTION_REQUESTS(), {
       state: VISIBLE_STATES.join(","),
       direction: ConnectionRequestDirection.RECEIVED,
     }).then((requests) => {
-      setRequests(requests);
+      console.log(requests.meta);
+      setRequests(requests.page);
     });
 
     const subscription = connectionRequestContext.subscribe(
