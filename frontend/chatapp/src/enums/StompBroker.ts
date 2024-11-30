@@ -1,7 +1,18 @@
-enum StompBroker {
-  CHAT = "/queue/chat",
-  CONNECTION_REQUESTS = "/user/queue/connection-requests",
-  CHAT_GROUPS = "/user/queue/chatgroups",
-}
+export default class StompBroker {
+  public static readonly CHAT = new StompBroker("/queue/chat");
+  public static readonly CONNECTION_REQUESTS = new StompBroker(
+    "/user/queue/connection-requests"
+  );
+  public static readonly CHAT_GROUPS = new StompBroker(
+    "/user/queue/chatgroups"
+  );
 
-export default StompBroker;
+  private path: string;
+  private constructor(path: string) {
+    this.path = path;
+  }
+
+  public getPath(): string {
+    return this.path;
+  }
+}
