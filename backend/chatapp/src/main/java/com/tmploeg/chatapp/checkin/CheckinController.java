@@ -32,6 +32,8 @@ public class CheckinController {
             });
 
     return new CheckinDTO(
-        newRequests.stream().map(request -> ConnectionRequestDTO.from(request, user)).toList());
+        newRequests.stream()
+            .map(request -> ConnectionRequestDTO.from(request, ConnectionRequestDirection.INCOMING))
+            .toList());
   }
 }

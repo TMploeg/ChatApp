@@ -3,7 +3,6 @@ package com.tmploeg.chatapp.connectionrequests;
 import com.tmploeg.chatapp.connectionrequests.specifications.ConnectionRequestSpecificationBuilder;
 import com.tmploeg.chatapp.connectionrequests.specifications.ConnectionRequestSpecificationBuilderFactory;
 import com.tmploeg.chatapp.connectionrequests.specifications.ConnectionRequestSpecificationConfigurer;
-import com.tmploeg.chatapp.connectionrequests.specifications.UserSpecificationData;
 import com.tmploeg.chatapp.users.User;
 import java.util.*;
 import java.util.function.Consumer;
@@ -86,10 +85,10 @@ public class ConnectionRequestService {
 
   public boolean existsForConnectorAndConnectee(User connector, User connectee) {
     return exists(
-        (configurer) ->
-            configurer.hasUser(
-                new UserSpecificationData(connector, ConnectionRequestDirection.OUTGOING),
-                new UserSpecificationData(connectee, ConnectionRequestDirection.INCOMING)));
+        (configurer) -> {
+          configurer.hasUser(connector, ConnectionRequestDirection.OUTGOING);
+          configurer.hasUser(connectee, ConnectionRequestDirection.INCOMING);
+        });
   }
 
   //  private Specification<ConnectionRequest> requestSpecification(

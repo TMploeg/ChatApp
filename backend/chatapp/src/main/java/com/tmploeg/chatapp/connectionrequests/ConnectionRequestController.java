@@ -8,8 +8,8 @@ import com.tmploeg.chatapp.dtos.page.PageDTO;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
 import com.tmploeg.chatapp.exceptions.ForbiddenException;
 import com.tmploeg.chatapp.exceptions.NotFoundException;
+import com.tmploeg.chatapp.messaging.Broker;
 import com.tmploeg.chatapp.messaging.MessagingService;
-import com.tmploeg.chatapp.messaging.StompBroker;
 import com.tmploeg.chatapp.security.AuthenticationProvider;
 import com.tmploeg.chatapp.users.User;
 import com.tmploeg.chatapp.users.UserService;
@@ -53,7 +53,14 @@ public class ConnectionRequestController {
             }),
             pageable);
 
-    return PageDTO.from(requests, (request) -> ConnectionRequestDTO.from(request, user));
+    return PageDTO.from(
+        requests,
+        (request) ->
+            ConnectionRequestDTO.from(
+                request,
+                request.getConnector().getUsername().equals(user.getUsername())
+                    ? ConnectionRequestDirection.OUTGOING
+                    : ConnectionRequestDirection.INCOMING));
   }
 
   private ConnectionRequestDirection parseDirection(String direction) {
@@ -113,7 +120,9 @@ public class ConnectionRequestController {
     ConnectionRequest request = connectionRequestService.save(connector, connectee);
 
     messagingService.sendToUser(
-        connectee, StompBroker.CONNECTION_REQUESTS, ConnectionRequestDTO.from(request, connector));
+        connectee,
+        Broker.CONNECTION_REQUESTS,
+        ConnectionRequestDTO.from(request, ConnectionRequestDirection.INCOMING));
   }
 
   @PatchMapping("{id}")
@@ -182,8 +191,8 @@ public class ConnectionRequestController {
         || newState.equals(ConnectionRequestState.REJECTED)) {
       messagingService.sendToUser(
           request.getConnector(),
-          StompBroker.CONNECTION_REQUESTS,
-          ConnectionRequestDTO.from(request, user));
+          Broker.CONNECTION_REQUESTS,
+          ConnectionRequestDTO.from(request, ConnectionRequestDirection.OUTGOING));
     }
   }
 }

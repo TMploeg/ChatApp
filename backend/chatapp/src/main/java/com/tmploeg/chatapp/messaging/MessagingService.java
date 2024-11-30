@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 public class MessagingService {
   private final SimpMessagingTemplate template;
 
-  public void send(StompBroker broker, Object payload) {
-    template.convertAndSend(broker.getRoute(), payload);
+  public void send(Broker broker, Object payload) {
+    template.convertAndSend(broker.getDestination(), payload);
   }
 
-  public void sendToUser(User user, StompBroker broker, Object payload) {
-    template.convertAndSendToUser(user.getUsername(), broker.getRoute(), payload);
+  public void sendToUser(User user, Broker broker, Object payload) {
+    template.convertAndSendToUser(user.getUsername(), broker.getDestination(), payload);
   }
 }

@@ -4,8 +4,8 @@ import com.tmploeg.chatapp.ApiRoutes;
 import com.tmploeg.chatapp.connections.ConnectionService;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
 import com.tmploeg.chatapp.exceptions.NotFoundException;
+import com.tmploeg.chatapp.messaging.Broker;
 import com.tmploeg.chatapp.messaging.MessagingService;
-import com.tmploeg.chatapp.messaging.StompBroker;
 import com.tmploeg.chatapp.security.AuthenticationProvider;
 import com.tmploeg.chatapp.users.User;
 import com.tmploeg.chatapp.users.UserService;
@@ -109,7 +109,7 @@ public class ChatGroupController {
             .toList();
 
     for (User user : recipients) {
-      messagingService.sendToUser(user, StompBroker.CHAT_GROUPS, ChatGroupDTO.from(newGroup, user));
+      messagingService.sendToUser(user, Broker.CHAT_GROUPS, ChatGroupDTO.from(newGroup, user));
     }
   }
 

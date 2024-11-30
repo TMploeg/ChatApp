@@ -22,7 +22,7 @@ public class MessagingConfiguration implements WebSocketMessageBrokerConfigurer 
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
-    registry.enableSimpleBroker(StompBroker.getAllRoutes());
+    registry.enableSimpleBroker(Broker.getAllDestinations());
     registry.setUserDestinationPrefix("/user");
   }
 

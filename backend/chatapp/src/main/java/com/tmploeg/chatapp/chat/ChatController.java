@@ -2,8 +2,8 @@ package com.tmploeg.chatapp.chat;
 
 import com.tmploeg.chatapp.ApiRoutes;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
+import com.tmploeg.chatapp.messaging.Broker;
 import com.tmploeg.chatapp.messaging.MessagingService;
-import com.tmploeg.chatapp.messaging.StompBroker;
 import com.tmploeg.chatapp.security.AuthenticationProvider;
 import com.tmploeg.chatapp.users.User;
 import java.util.List;
@@ -44,6 +44,6 @@ public class ChatController {
     User user = authenticationProvider.getAuthenticatedUser();
 
     ChatMessage message = chatMessageService.save(newMessageDTO.content(), user, groupId);
-    messagingService.send(StompBroker.CHAT, ChatMessageDTO.from(message));
+    messagingService.send(Broker.CHAT, ChatMessageDTO.from(message));
   }
 }

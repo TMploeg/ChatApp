@@ -35,7 +35,6 @@ public class AuthChannelInterceptor extends AuthInterceptor implements ChannelIn
       return null;
     }
 
-    // TODO enable connect without auth, but validate other messages
     if (!Objects.equals(accessor.getCommand(), StompCommand.CONNECT)) {
       return message;
     }

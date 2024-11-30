@@ -38,19 +38,6 @@ public class ConnectionRequestSpecificationBuilder
   }
 
   @Override
-  public void hasUser(UserSpecificationData... userSpecificationData) {
-    List<Specification<ConnectionRequest>> userSpecifications =
-        new ArrayList<>(userSpecificationData.length);
-    for (UserSpecificationData data : userSpecificationData) {
-      userSpecifications.add(getUserSpecification(data.user(), data.direction()));
-    }
-
-    if (!userSpecifications.isEmpty()) {
-      specifications.add(Specification.anyOf(userSpecifications));
-    }
-  }
-
-  @Override
   public void hasUser(User user, ConnectionRequestDirection direction) {
     specifications.add(getUserSpecification(user, direction));
   }
@@ -95,9 +82,6 @@ public class ConnectionRequestSpecificationBuilder
       Specification<ConnectionRequest> unpagedSpecification) {
     return (root, query, builder) -> {
       assert query != null;
-
-      System.out.println(
-          "ORDERS: " + String.join(",", sort.get().map(Sort.Order::getProperty).toList()));
 
       if (sort.get().findAny().isEmpty()) {
         return unpagedSpecification.toPredicate(root, query, builder);
