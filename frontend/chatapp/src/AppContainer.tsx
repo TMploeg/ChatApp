@@ -1,23 +1,15 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import NotificationData from "./models/notification-data";
-import {
-  useCheckin,
-  useConnectionRequests,
-  useStorage,
-  useWebSocket,
-} from "./hooks";
+import { useStorage, useWebSocket } from "./hooks";
 import { JWT, Message } from "./models";
 import { StorageLocation } from "./enums/StorageLocation";
-import useNotification from "./hooks/useNotification";
 import StompBroker from "./enums/StompBroker";
 import { ConnectionRequest } from "./models/connection-request";
 import App from "./App";
-import ConnectionRequestState from "./enums/ConnectionRequestState";
 import { BsChatFill } from "react-icons/bs";
 import ChatGroup, { ChatGroupData } from "./models/chat-group";
 import SubscriptionName from "./enums/SubscriptionName";
 import ContextProviders from "./ContextProviders";
-import { ConnectionRequestsVisibilityContext } from "./context";
 
 const DEBUG_ENABLED: boolean = false;
 const MAX_NOTIFICATIONS: number = 5;
@@ -36,14 +28,6 @@ export default function AppContainer() {
     });
 
   const socket = useWebSocket();
-  const getCheckinData = useCheckin();
-
-  const { getConnectionRequestNotification } = useNotification();
-  const { updateState } = useConnectionRequests();
-
-  const connectionRequestsVisibility = useContext(
-    ConnectionRequestsVisibilityContext
-  );
 
   useEffect(() => {
     if (loggedIn === connected) {
