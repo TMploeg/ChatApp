@@ -47,7 +47,7 @@ export default function useWebSocket(): Socket {
       throw new Error("cannot subscribe when not connected");
     }
 
-    return stompClient.subscribe(destination, (message) =>
+    return stompClient.subscribe(destination.getPath(), (message) =>
       callback(JSON.parse(message.body))
     );
   }
