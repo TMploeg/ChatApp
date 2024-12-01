@@ -3,6 +3,7 @@ package com.tmploeg.chatapp.chat;
 import com.tmploeg.chatapp.chat.chatgroup.ChatGroup;
 import com.tmploeg.chatapp.chat.chatgroup.ChatGroupRepository;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
+import com.tmploeg.chatapp.exceptions.ForbiddenException;
 import com.tmploeg.chatapp.users.User;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -17,11 +18,23 @@ public class ChatMessageService {
   private final ChatGroupRepository chatGroupRepository;
 
   public ChatMessage save(String message, User sender, String groupId) {
+    ChatGroup group = tryGetChatGroupById(groupId);
+
+    if (!chatGroupRepository.existsByIdForUser(group.getId(), sender.getUsername())) {
+      throw new ForbiddenException("user not part of chatgroup");
+    }
+
     return chatMessageRepository.save(
         new ChatMessage(message, sender, LocalDateTime.now(), tryGetChatGroupById(groupId)));
   }
 
   public Set<ChatMessage> getChatHistory(String groupId, User user) {
+    ChatGroup group = tryGetChatGroupById(groupId);
+
+    if (!chatGroupRepository.existsByIdForUser(group.getId(), user.getUsername())) {
+      throw new ForbiddenException("user not part of chatgroup");
+    }
+
     return chatMessageRepository.getChatGroupHistory(tryGetChatGroupById(groupId), user);
   }
 

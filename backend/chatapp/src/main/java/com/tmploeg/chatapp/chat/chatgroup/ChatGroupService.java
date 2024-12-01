@@ -17,7 +17,11 @@ public class ChatGroupService {
   }
 
   public Optional<ChatGroup> getByIdForUser(UUID id, User user) {
-    return chatGroupRepository.findChatGroupForUserById(id, user);
+    return chatGroupRepository.findByIdForUser(id, user);
+  }
+
+  public boolean existsByIdForUser(UUID id, String username) {
+    return chatGroupRepository.existsByIdForUser(id, username);
   }
 
   public ChatGroup create(Set<User> users) {

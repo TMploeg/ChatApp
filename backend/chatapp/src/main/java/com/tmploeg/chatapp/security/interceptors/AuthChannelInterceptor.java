@@ -1,18 +1,16 @@
 package com.tmploeg.chatapp.security.interceptors;
 
+import com.tmploeg.chatapp.messaging.SubscribeHandler;
 import com.tmploeg.chatapp.security.jwt.TokenReader;
 import com.tmploeg.chatapp.users.User;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +22,7 @@ public class AuthChannelInterceptor extends AuthInterceptor implements ChannelIn
   private String authHeaderName;
 
   private final TokenReader tokenReader;
+  private final SubscribeHandler subscribeHandler;
 
   @Override
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -35,22 +34,31 @@ public class AuthChannelInterceptor extends AuthInterceptor implements ChannelIn
       return null;
     }
 
-    if (!Objects.equals(accessor.getCommand(), StompCommand.CONNECT)) {
-      return message;
-    }
+    return switch (accessor.getCommand()) {
+      case CONNECT -> handleConnect(message, accessor);
+      case SUBSCRIBE -> handleSubscribe(message, accessor);
+      default -> message;
+    };
+  }
 
+  private Message<?> handleConnect(Message<?> message, StompHeaderAccessor accessor) {
     String authorization = accessor.getFirstNativeHeader(authHeaderName);
 
     Optional<User> user = getUserFromAuthorization(authorization, tokenReader);
     if (user.isEmpty()) {
-      log.info("unauthorized message blocked");
-      channel.send(new GenericMessage<>("can't connect: unauthorized"));
       return null;
     }
 
     String username = user.get().getUsername();
-
     accessor.setUser(() -> username);
+
+    return message;
+  }
+
+  private Message<?> handleSubscribe(Message<?> message, StompHeaderAccessor accessor) {
+    if (!subscribeHandler.isValidSubscription(accessor)) {
+      return null;
+    }
 
     return message;
   }
