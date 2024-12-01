@@ -29,9 +29,7 @@ public class AuthHandlerInterceptor extends AuthInterceptor implements HandlerIn
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
     if (!(handler instanceof HandlerMethod handlerMethod)) {
-      log.warn(
-          "failed to handle request, handler not of type 'HandlerMethod' (handler: '{}')",
-          handler.getClass().getName());
+      log.debug("detected unknown handler of type '{}'", handler.getClass().getName());
       return true;
     }
 
