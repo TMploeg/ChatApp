@@ -18,12 +18,12 @@ public class Seeder implements CommandLineRunner {
   private final UserRepository userRepository;
   private final ConnectionRequestRepository connectionRequestRepository;
 
-  private static final int SEED_USER_COUNT = 20;
+  private static final int SEED_USER_COUNT = 100;
 
   @Override
   public void run(String... args) throws Exception {
     seedUsers();
-    //    seedConnectionRequests();
+    seedConnectionRequests();
   }
 
   private void seedUsers() {
@@ -47,7 +47,6 @@ public class Seeder implements CommandLineRunner {
     List<User> users = userRepository.findAll();
     Random r = new Random();
 
-    ConnectionRequestState[] states = ConnectionRequestState.values();
     List<ConnectionRequest> requests = new ArrayList<>();
 
     User user0 =
@@ -66,7 +65,7 @@ public class Seeder implements CommandLineRunner {
       User connectee = connector == user0 ? current : user0;
 
       ConnectionRequest request = new ConnectionRequest(connector, connectee);
-      request.setState(states[r.nextInt(0, states.length)]);
+      request.setState(ConnectionRequestState.SEND);
       requests.add(request);
     }
 

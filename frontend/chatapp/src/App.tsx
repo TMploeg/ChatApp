@@ -42,8 +42,8 @@ export default function App({
   const notifications = useContext(NotificationContext);
   const subscriptions = useContext(SubscriptionContext);
 
-  const [connectionRequests, setConnectionRequests] =
-    useState<SendConnectionRequest[]>();
+  const [connectionRequestsPage, setConnectionRequestsPage] =
+    useState<Page<SendConnectionRequest>>();
   const [connections, setConnections] = useState<Connection[]>();
 
   const [connectionsVisible, setConnectionsVisible] = useState<boolean>(false);
@@ -66,7 +66,7 @@ export default function App({
     fetchConnections();
 
     return () => {
-      setConnectionRequests(undefined);
+      setConnectionRequestsPage(undefined);
       setConnections(undefined);
     };
   }, [loggedIn]);
@@ -116,12 +116,18 @@ export default function App({
           connections={connections ?? []}
         />
       )}
-      {connectionRequests && (
+      {connectionRequestsPage && (
         <ConnectionRequestsOverlay
           show={connectionRequestsVisible}
           onHide={() => setConnectionRequestsVisible(false)}
-          connectionRequests={connectionRequests}
+          connectionRequests={connectionRequestsPage.page}
           onRequestAnswered={handleRequestAnswered}
+          pagination={{
+            page: connectionRequestsPage.meta.page,
+            totalPages: connectionRequestsPage.meta.totalPages,
+            onPrevious: previousConnectionRequestsPage,
+            onNext: nextConnectionRequestsPage,
+          }}
         />
       )}
     </div>
@@ -168,22 +174,22 @@ export default function App({
     };
   }
 
-  function fetchConnectionRequests() {
-    get<Page<SendConnectionRequest>>(ApiRoute.CONNECTION_REQUESTS()).then(
-      (requests) => {
-        requests.page
-          .filter((request) => !request.seen)
-          .forEach((request) => {
-            onNewNotification(
-              getSendConnectionRequestNotification(request, {
-                onClick: () => setConnectionRequestsVisible(true),
-              })
-            );
-          });
+  function fetchConnectionRequests(page?: number) {
+    get<Page<SendConnectionRequest>>(ApiRoute.CONNECTION_REQUESTS(), {
+      page: page,
+    }).then((requests) => {
+      requests.page
+        .filter((request) => !request.seen)
+        .forEach((request) => {
+          onNewNotification(
+            getSendConnectionRequestNotification(request, {
+              onClick: () => setConnectionRequestsVisible(true),
+            })
+          );
+        });
 
-        setConnectionRequests(requests.page);
-      }
-    );
+      setConnectionRequestsPage(requests);
+    });
   }
 
   function fetchConnections() {
@@ -209,25 +215,60 @@ export default function App({
   }
 
   function addConnectionRequest(request: SendConnectionRequest) {
-    setConnectionRequests((requests) => {
-      requests?.unshift(request);
+    setConnectionRequestsPage((requests) => {
+      requests?.page.unshift(request);
       return requests;
     });
   }
 
   function removeConnectionRequest(request: SendConnectionRequest) {
-    setConnectionRequests((requests) => {
+    setConnectionRequestsPage((requests) => {
       if (!requests) {
         return;
       }
 
-      const index = requests.findIndex((r) => r.id === request.id);
+      const index = requests.page.findIndex((r) => r.id === request.id);
 
       if (index < 0) {
         return requests;
       }
 
-      return requests.slice(0, index).concat(requests.slice(index + 1));
+      const newPage = requests.page
+        .slice(0, index)
+        .concat(requests.page.slice(index + 1));
+
+      return {
+        ...requests,
+        page: newPage,
+      };
     });
+  }
+
+  function previousConnectionRequestsPage() {
+    if (!connectionRequestsPage) {
+      return;
+    }
+
+    const meta = connectionRequestsPage.meta;
+    if (meta.page <= 0) {
+      console.warn("no previous page");
+      return;
+    }
+
+    fetchConnectionRequests(meta.page - 1);
+  }
+
+  function nextConnectionRequestsPage() {
+    if (!connectionRequestsPage) {
+      return;
+    }
+
+    const meta = connectionRequestsPage.meta;
+    if (meta.page + 1 >= meta.totalPages) {
+      console.warn("no next page");
+      return;
+    }
+
+    fetchConnectionRequests(meta.page + 1);
   }
 }

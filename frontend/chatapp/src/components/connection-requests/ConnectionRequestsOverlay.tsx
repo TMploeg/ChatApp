@@ -1,13 +1,14 @@
 import { BsPersonFill } from "react-icons/bs";
 import { Button, Modal } from "react-bootstrap";
 import { useAlert, useConnectionRequests } from "../../hooks";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ClipLoader } from "react-spinners";
 import { Variant } from "react-bootstrap/esm/types";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
 import "./ConnectionRequests.scss";
 import { SendConnectionRequest } from "../../models/connection-request";
 import ConnectionRequestAnswerType from "../../enums/ConnectionRequestAnswerType";
+import Paginator, { PaginatorProps } from "../generic/paginator/Paginator";
 
 interface Props {
   show: boolean;
@@ -17,16 +18,20 @@ interface Props {
     request: SendConnectionRequest,
     type: ConnectionRequestAnswerType
   ) => void;
+  pagination: PaginatorProps;
 }
 export default function ConnectionRequestsOverlay({
   show,
   onHide,
   connectionRequests,
   onRequestAnswered,
+  pagination,
 }: Props) {
   const { markRequestSeen, answerRequest } = useConnectionRequests();
 
   const alert = useAlert();
+
+  const modalBodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (connectionRequests) {
@@ -41,7 +46,7 @@ export default function ConnectionRequestsOverlay({
       <Modal.Header className="connections-backdrop-header" closeButton>
         <h1>Connection Requests</h1>
       </Modal.Header>
-      <Modal.Body>
+      <Modal.Body ref={modalBodyRef} className="connection-requests-modal-body">
         <div className="connection-requests-container">
           {connectionRequests !== undefined ? (
             <SeperatedList
@@ -58,6 +63,20 @@ export default function ConnectionRequestsOverlay({
           )}
         </div>
       </Modal.Body>
+      <Modal.Footer className="paginator-container">
+        <Paginator
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPrevious={() => {
+            scrollToTop();
+            pagination.onPrevious();
+          }}
+          onNext={() => {
+            scrollToTop();
+            pagination.onNext();
+          }}
+        />
+      </Modal.Footer>
     </Modal>
   );
 
@@ -85,6 +104,10 @@ export default function ConnectionRequestsOverlay({
       case ConnectionRequestAnswerType.IGNORED:
         return { message: "Request ignored.", variant: "info" };
     }
+  }
+
+  function scrollToTop() {
+    modalBodyRef.current?.scrollTo(0, 0);
   }
 }
 

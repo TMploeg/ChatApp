@@ -1,9 +1,10 @@
+.connection-requests-modal-body {
+  overflow: hidden;
+}
+
 .connection-requests-container {
   padding: 8px;
   padding-top: 16px;
-
-  flex: 1;
-  overflow-y: scroll;
 
   .connection-request {
     display: flex;
