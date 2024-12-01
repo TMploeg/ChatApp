@@ -1,38 +1,38 @@
 import { BsPersonFill } from "react-icons/bs";
-import { ConnectionRequest } from "../../models/connection-request";
 import { Button, Modal } from "react-bootstrap";
 import { useAlert, useConnectionRequests } from "../../hooks";
-import ConnectionRequestState from "../../enums/ConnectionRequestState";
 import { useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 import { Variant } from "react-bootstrap/esm/types";
 import SeperatedList from "../generic/seperated-list/SeperatedList";
 import "./ConnectionRequests.scss";
+import { SendConnectionRequest } from "../../models/connection-request";
+import ConnectionRequestAnswerType from "../../enums/ConnectionRequestAnswerType";
 
 interface Props {
   show: boolean;
   onHide: () => void;
-  connectionRequests: ConnectionRequest[];
-  onRequestRemoved: (request: ConnectionRequest) => void;
+  connectionRequests: SendConnectionRequest[];
+  onRequestAnswered: (
+    request: SendConnectionRequest,
+    type: ConnectionRequestAnswerType
+  ) => void;
 }
-//TODO implement pagination
 export default function ConnectionRequestsOverlay({
   show,
   onHide,
   connectionRequests,
-  onRequestRemoved,
+  onRequestAnswered,
 }: Props) {
-  const { updateState } = useConnectionRequests();
+  const { markRequestSeen, answerRequest } = useConnectionRequests();
 
   const alert = useAlert();
 
   useEffect(() => {
     if (connectionRequests) {
       connectionRequests
-        .filter((request) => request.state === ConnectionRequestState.SEND)
-        .forEach((request) =>
-          updateState(request, ConnectionRequestState.SEEN)
-        );
+        .filter((request) => !request.seen)
+        .forEach((request) => markRequestSeen(request));
     }
   }, [show]);
 
@@ -49,7 +49,7 @@ export default function ConnectionRequestsOverlay({
               ItemRenderElement={({ item: request }) => (
                 <RequestView
                   request={request}
-                  onRequestInteraction={handleRequestInteraction}
+                  onRequestAnswered={handleRequestAnswered}
                 />
               )}
             />
@@ -61,48 +61,41 @@ export default function ConnectionRequestsOverlay({
     </Modal>
   );
 
-  function handleRequestInteraction(
-    request: ConnectionRequest,
-    state: ConnectionRequestState
+  function handleRequestAnswered(
+    request: SendConnectionRequest,
+    type: ConnectionRequestAnswerType
   ) {
-    updateState(request, state)
+    answerRequest(request, type)
       .then(() => {
-        onRequestRemoved(request);
-        sendRequestInteractionSuccesAlert(state);
+        const data: AlertData = getAlertDataForAnswerType(type);
+
+        alert(data.message, data.variant);
+
+        onRequestAnswered(request, type);
       })
       .catch((error) => console.error(error));
   }
 
-  function sendRequestInteractionSuccesAlert(
-    requestState: ConnectionRequestState
-  ) {
-    type AlertData = { message: string; variant: Variant };
-    const data: AlertData | null =
-      requestState === ConnectionRequestState.ACCEPTED
-        ? { message: "Request accepted!", variant: "success" }
-        : requestState === ConnectionRequestState.REJECTED
-        ? { message: "Request rejected.", variant: "info" }
-        : requestState === ConnectionRequestState.IGNORED
-        ? { message: "Request ignored.", variant: "info" }
-        : null;
-
-    if (data === null) {
-      console.error("invalid state detected at interaction alert");
-      return;
+  function getAlertDataForAnswerType(type: ConnectionRequestAnswerType) {
+    switch (type) {
+      case ConnectionRequestAnswerType.ACCEPTED:
+        return { message: "Request accepted!", variant: "success" };
+      case ConnectionRequestAnswerType.REJECTED:
+        return { message: "Request rejected.", variant: "info" };
+      case ConnectionRequestAnswerType.IGNORED:
+        return { message: "Request ignored.", variant: "info" };
     }
-
-    alert(data.message, data.variant);
   }
 }
 
 interface RequestViewProps {
-  request: ConnectionRequest;
-  onRequestInteraction: (
-    request: ConnectionRequest,
-    state: ConnectionRequestState
+  request: SendConnectionRequest;
+  onRequestAnswered: (
+    request: SendConnectionRequest,
+    type: ConnectionRequestAnswerType
   ) => void;
 }
-function RequestView({ request, onRequestInteraction }: RequestViewProps) {
+function RequestView({ request, onRequestAnswered }: RequestViewProps) {
   return (
     <div className="connection-request">
       <div className="connection-request-image">
@@ -114,7 +107,7 @@ function RequestView({ request, onRequestInteraction }: RequestViewProps) {
           <Button
             variant="outline-success"
             onClick={() =>
-              onRequestInteraction(request, ConnectionRequestState.ACCEPTED)
+              onRequestAnswered(request, ConnectionRequestAnswerType.ACCEPTED)
             }
           >
             ACCEPT
@@ -122,7 +115,7 @@ function RequestView({ request, onRequestInteraction }: RequestViewProps) {
           <Button
             variant="outline-danger"
             onClick={() =>
-              onRequestInteraction(request, ConnectionRequestState.REJECTED)
+              onRequestAnswered(request, ConnectionRequestAnswerType.REJECTED)
             }
           >
             REJECT
@@ -130,7 +123,7 @@ function RequestView({ request, onRequestInteraction }: RequestViewProps) {
           <Button
             variant="outline-secondary"
             onClick={() =>
-              onRequestInteraction(request, ConnectionRequestState.IGNORED)
+              onRequestAnswered(request, ConnectionRequestAnswerType.IGNORED)
             }
           >
             IGNORE
@@ -140,3 +133,5 @@ function RequestView({ request, onRequestInteraction }: RequestViewProps) {
     </div>
   );
 }
+
+type AlertData = { message: string; variant: Variant };

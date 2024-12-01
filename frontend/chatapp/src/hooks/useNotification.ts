@@ -1,44 +1,52 @@
 import { BsFillPeopleFill } from "react-icons/bs";
 import NotificationData from "../models/notification-data";
-import { ConnectionRequest } from "../models/connection-request";
-import ConnectionRequestState from "../enums/ConnectionRequestState";
+import ConnectionRequest, {
+  AnsweredConnectionRequest,
+  SendConnectionRequest,
+} from "../models/connection-request";
 
 export default function useNotification() {
-  function getConnectionRequestNotification(
-    request: ConnectionRequest,
+  function getSendConnectionRequestNotification(
+    request: SendConnectionRequest,
     params?: NotificationParams
   ): NotificationData {
-    const data: NotificationData = {
-      id: request.id,
-      icon: BsFillPeopleFill,
-      title: "Connection Request",
-      onClick: params?.onClick,
+    return {
+      ...defaultNotificationData(request, params),
+      text: `'${request.subject}' wants to connect with you.`,
     };
+  }
 
-    switch (request.state.toUpperCase()) {
-      case ConnectionRequestState.SEND:
-        data.text = `'${request.subject}' wants to connect with you.`;
-        break;
-      case ConnectionRequestState.ACCEPTED:
-        data.text = `'${request.subject}' accepted your connection request`;
-        data.variant = "success";
-        break;
-      case ConnectionRequestState.REJECTED:
-        data.text = `'${request.subject}' rejected your connection request`;
-        data.variant = "secondary";
-        break;
-      default:
-        throw new Error("invalid state detected (" + request.state + ")");
-    }
-
-    return data;
+  function getAnsweredConnectionRequestNotification(
+    request: AnsweredConnectionRequest,
+    params?: NotificationParams
+  ): NotificationData {
+    return {
+      ...defaultNotificationData(request, params),
+      text: request.accepted
+        ? `'${request.subject}' accepted your connection request`
+        : `'${request.subject}' rejected your connection request`,
+      variant: request.accepted ? "success" : "secondary",
+    };
   }
 
   return {
-    getConnectionRequestNotification,
+    getSendConnectionRequestNotification,
+    getAnsweredConnectionRequestNotification,
   };
 }
 
 interface NotificationParams {
   onClick?: () => void;
+}
+
+function defaultNotificationData(
+  request: ConnectionRequest,
+  params?: NotificationParams
+): NotificationData {
+  return {
+    id: request.id,
+    icon: BsFillPeopleFill,
+    title: "Connection Request",
+    onClick: params?.onClick,
+  };
 }

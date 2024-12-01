@@ -14,19 +14,16 @@ import useNotification from "./hooks/useNotification";
 import NotificationData from "./models/notification-data";
 import { useApi } from "./hooks";
 import StompBroker from "./enums/StompBroker";
-import { ConnectionRequest } from "./models/connection-request";
+import {
+  AnsweredConnectionRequest,
+  SendConnectionRequest,
+} from "./models/connection-request";
 import ConnectionsOverlay from "./components/connections/ConnectionsOverlay";
 import ConnectionRequestsOverlay from "./components/connection-requests/ConnectionRequestsOverlay";
 import Connection from "./models/connection";
 import Page from "./models/page";
 import ApiRoute from "./enums/ApiRoute";
-import ConnectionRequestState from "./enums/ConnectionRequestState";
-import ConnectionRequestDirection from "./enums/ConnectionRequestDirection";
-
-const VISIBLE_CONNECTION_REQUEST_STATES: ConnectionRequestState[] = [
-  ConnectionRequestState.SEND,
-  ConnectionRequestState.SEEN,
-];
+import ConnectionRequestAnswerType from "./enums/ConnectionRequestAnswerType";
 
 interface AppProps {
   loggedIn: boolean;
@@ -46,14 +43,17 @@ export default function App({
   const subscriptions = useContext(SubscriptionContext);
 
   const [connectionRequests, setConnectionRequests] =
-    useState<ConnectionRequest[]>();
+    useState<SendConnectionRequest[]>();
   const [connections, setConnections] = useState<Connection[]>();
 
   const [connectionsVisible, setConnectionsVisible] = useState<boolean>(false);
   const [connectionRequestsVisible, setConnectionRequestsVisible] =
     useState<boolean>(false);
 
-  const { getConnectionRequestNotification } = useNotification();
+  const {
+    getSendConnectionRequestNotification,
+    getAnsweredConnectionRequestNotification,
+  } = useNotification();
 
   const { get } = useApi();
 
@@ -121,62 +121,101 @@ export default function App({
           show={connectionRequestsVisible}
           onHide={() => setConnectionRequestsVisible(false)}
           connectionRequests={connectionRequests}
-          onRequestRemoved={removeConnectionRequest}
+          onRequestAnswered={handleRequestAnswered}
         />
       )}
     </div>
   );
 
   function subscribeToConnectionRequests(): Subscription {
-    return subscriptions.subscribe<ConnectionRequest>(
-      StompBroker.CONNECTION_REQUESTS,
-      (request) => {
-        switch (request.state.toUpperCase()) {
-          case ConnectionRequestState.SEND.toUpperCase():
-            setConnectionRequests((requests) => {
-              requests?.unshift(request);
-              return requests;
-            });
-            break;
-          case ConnectionRequestState.ACCEPTED.toUpperCase():
-            setConnections((connections) => {
-              connections?.unshift({ username: request.subject });
-              return connections;
-            });
-            break;
-          default:
-            break;
-        }
+    const sendRequestsSubscription =
+      subscriptions.subscribe<SendConnectionRequest>(
+        StompBroker.SEND_CONNECTION_REQUESTS,
+        (request) => {
+          addConnectionRequest(request);
 
-        showRequestNotification(request);
-      }
-    );
-  }
-
-  function fetchConnectionRequests() {
-    get<Page<ConnectionRequest>>(ApiRoute.CONNECTION_REQUESTS(), {
-      state: VISIBLE_CONNECTION_REQUEST_STATES.join(","),
-      direction: ConnectionRequestDirection.RECEIVED,
-    }).then((requests) => {
-      requests.page
-        .filter((request) => request.state === ConnectionRequestState.SEND)
-        .forEach((request) => {
           onNewNotification(
-            getConnectionRequestNotification(request, {
+            getSendConnectionRequestNotification(request, {
               onClick: () => setConnectionRequestsVisible(true),
             })
           );
-        });
+        }
+      );
 
-      setConnectionRequests(requests.page);
-    });
+    const answeredRequestsSubscription =
+      subscriptions.subscribe<AnsweredConnectionRequest>(
+        StompBroker.ANSWERED_CONNECTION_REQUESTS,
+        (request) => {
+          if (request.accepted) {
+            addConnection({ username: request.subject });
+          }
+
+          onNewNotification(
+            getAnsweredConnectionRequestNotification(request, {
+              onClick: request.accepted
+                ? () => setConnectionsVisible(true)
+                : undefined,
+            })
+          );
+        }
+      );
+
+    return {
+      unsubscribe: () => {
+        sendRequestsSubscription.unsubscribe();
+        answeredRequestsSubscription.unsubscribe();
+      },
+    };
+  }
+
+  function fetchConnectionRequests() {
+    get<Page<SendConnectionRequest>>(ApiRoute.CONNECTION_REQUESTS()).then(
+      (requests) => {
+        requests.page
+          .filter((request) => !request.seen)
+          .forEach((request) => {
+            onNewNotification(
+              getSendConnectionRequestNotification(request, {
+                onClick: () => setConnectionRequestsVisible(true),
+              })
+            );
+          });
+
+        setConnectionRequests(requests.page);
+      }
+    );
   }
 
   function fetchConnections() {
     get<Connection[]>(ApiRoute.CONNECTIONS()).then(setConnections);
   }
 
-  function removeConnectionRequest(request: ConnectionRequest) {
+  function handleRequestAnswered(
+    request: SendConnectionRequest,
+    type: ConnectionRequestAnswerType
+  ) {
+    removeConnectionRequest(request);
+
+    if (type === ConnectionRequestAnswerType.ACCEPTED) {
+      addConnection({ username: request.subject });
+    }
+  }
+
+  function addConnection(connection: Connection) {
+    setConnections((connections) => {
+      connections?.unshift(connection);
+      return connections;
+    });
+  }
+
+  function addConnectionRequest(request: SendConnectionRequest) {
+    setConnectionRequests((requests) => {
+      requests?.unshift(request);
+      return requests;
+    });
+  }
+
+  function removeConnectionRequest(request: SendConnectionRequest) {
     setConnectionRequests((requests) => {
       if (!requests) {
         return;
@@ -190,16 +229,5 @@ export default function App({
 
       return requests.slice(0, index).concat(requests.slice(index + 1));
     });
-  }
-
-  function showRequestNotification(request: ConnectionRequest) {
-    const notification: NotificationData = getConnectionRequestNotification(
-      request,
-      {
-        onClick: () => setConnectionRequestsVisible(true),
-      }
-    );
-
-    onNewNotification(notification);
   }
 }

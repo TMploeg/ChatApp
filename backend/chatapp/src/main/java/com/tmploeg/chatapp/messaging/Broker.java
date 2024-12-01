@@ -5,7 +5,10 @@ import lombok.Getter;
 @Getter
 public class Broker {
   public static final Broker CHAT = new Broker("/queue/chat");
-  public static final Broker CONNECTION_REQUESTS = new Broker("/queue/connection-requests");
+  public static final Broker SEND_CONNECTION_REQUESTS =
+      new Broker("/queue/connection-requests/send");
+  public static final Broker ANSWERED_CONNECTION_REQUESTS =
+      new Broker("/queue/connection-requests/answered");
   public static final Broker CHAT_GROUPS = new Broker("/queue/chatgroups");
 
   private final String destination;
@@ -22,11 +25,12 @@ public class Broker {
   }
 
   public static String[] getAllDestinations() {
-    String[] destinations = new String[3];
+    String[] destinations = new String[4];
 
     destinations[0] = CHAT.getDestination();
-    destinations[1] = CONNECTION_REQUESTS.getDestination();
-    destinations[2] = CHAT_GROUPS.getDestination();
+    destinations[1] = SEND_CONNECTION_REQUESTS.getDestination();
+    destinations[2] = ANSWERED_CONNECTION_REQUESTS.getDestination();
+    destinations[3] = CHAT_GROUPS.getDestination();
 
     return destinations;
   }

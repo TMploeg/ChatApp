@@ -91,52 +91,15 @@ public class ConnectionRequestService {
         });
   }
 
-  //  private Specification<ConnectionRequest> requestSpecification(
-  //      User user, ConnectionRequestDirection direction, Collection<ConnectionRequestState>
-  // states) {
-  //    List<Specification<ConnectionRequest>> specifications = new ArrayList<>();
-  //
-  //    specifications.add(ConnectionRequestSpecificationBuilder.hasUser(user, direction));
-  //
-  //    if (!states.isEmpty()) {
-  //      specifications.add(ConnectionRequestSpecificationBuilder.inState(states));
-  //    }
-  //
-  //    return Specification.allOf(specifications);
-  //  }
-  //
-  //  private Specification<ConnectionRequest> maskedRequestSpecification(
-  //      User user, ConnectionRequestDirection direction, Collection<ConnectionRequestState>
-  // states) {
-  //    return requestSpecification(user, direction, maskIgnored(states));
-  //  }
-  //
-  //  private List<ConnectionRequestState> maskIgnored(Collection<ConnectionRequestState> states) {
-  //    List<ConnectionRequestState> newStates = new ArrayList<>(states);
-  //    if (newStates.contains(ConnectionRequestState.SEEN)) {
-  //      if (!newStates.contains(ConnectionRequestState.IGNORED)) {
-  //        newStates.add(ConnectionRequestState.IGNORED);
-  //      }
-  //    } else {
-  //      newStates.remove(ConnectionRequestState.IGNORED);
-  //    }
-  //
-  //    return newStates;
-  //  }
+  public Optional<ConnectionRequest> getByIdIfUserIsConnectee(UUID id, User user) {
+    return findOne(
+        (configurer) -> {
+          configurer.hasId(id);
+          configurer.hasUser(user, ConnectionRequestDirection.TWO_WAY);
+        });
+  }
 
-  //    Specification<ConnectionRequest> specification =
-  //        switch (direction) {
-  //          case INCOMING -> requestSpecification(user, ConnectionRequestDirection.INCOMING,
-  // states);
-  //          case OUTGOING ->
-  //              maskedRequestSpecification(user, ConnectionRequestDirection.OUTGOING, states);
-  //          case TWO_WAY ->
-  //              Specification.anyOf(
-  //                  requestSpecification(user, ConnectionRequestDirection.INCOMING, states),
-  //                  maskedRequestSpecification(user, ConnectionRequestDirection.OUTGOING,
-  // states));
-  //        };
-  //
-  //    specification = ConnectionRequestSpecificationBuilder.ordered(specification, pageable,
-  // user);
+  public void update(ConnectionRequest request) {
+    connectionRequestRepository.save(request);
+  }
 }

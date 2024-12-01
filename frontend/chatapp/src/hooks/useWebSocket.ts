@@ -49,11 +49,7 @@ export default function useWebSocket(): Socket {
 
     return stompClient.subscribe(
       destination.getPath(),
-      (message) => {
-        const data = JSON.parse(message.body);
-        console.log("MESSAGE RECIEVED", data);
-        callback(data);
-      },
+      (message) => callback(JSON.parse(message.body)),
       {}
     );
   }

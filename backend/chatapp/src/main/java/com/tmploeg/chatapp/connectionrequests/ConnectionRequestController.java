@@ -1,12 +1,12 @@
 package com.tmploeg.chatapp.connectionrequests;
 
 import com.tmploeg.chatapp.ApiRoutes;
+import com.tmploeg.chatapp.connectionrequests.dtos.AnsweredConnectionRequestDTO;
 import com.tmploeg.chatapp.connectionrequests.dtos.ConnectionRequestDTO;
 import com.tmploeg.chatapp.connectionrequests.dtos.NewConnectionRequestDTO;
 import com.tmploeg.chatapp.connectionrequests.dtos.UpdateConnectionRequestDTO;
 import com.tmploeg.chatapp.dtos.page.PageDTO;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
-import com.tmploeg.chatapp.exceptions.ForbiddenException;
 import com.tmploeg.chatapp.exceptions.NotFoundException;
 import com.tmploeg.chatapp.messaging.Broker;
 import com.tmploeg.chatapp.messaging.MessagingService;
@@ -32,10 +32,7 @@ public class ConnectionRequestController {
   private final AuthenticationProvider authenticationProvider;
 
   @GetMapping
-  public PageDTO<ConnectionRequestDTO> getConnectionRequests(
-      @RequestParam(name = "state", defaultValue = "") String[] states,
-      @RequestParam(name = "direction", required = false) String direction,
-      Pageable pageable) {
+  public PageDTO<ConnectionRequestDTO> getConnectionRequests(Pageable pageable) {
     if (pageable.getPageNumber() < 0) {
       throw new BadRequestException("page must be greater than or equal to 0");
     }
@@ -48,19 +45,13 @@ public class ConnectionRequestController {
     Page<ConnectionRequest> requests =
         connectionRequestService.findAll(
             (specificationConfigurer -> {
-              specificationConfigurer.hasUser(user, parseDirection(direction));
-              specificationConfigurer.inState(parseStates(states));
+              specificationConfigurer.hasUser(user, ConnectionRequestDirection.INCOMING);
+              specificationConfigurer.inState(
+                  List.of(ConnectionRequestState.SEND, ConnectionRequestState.SEEN));
             }),
             pageable);
 
-    return PageDTO.from(
-        requests,
-        (request) ->
-            ConnectionRequestDTO.from(
-                request,
-                request.getConnector().getUsername().equals(user.getUsername())
-                    ? ConnectionRequestDirection.OUTGOING
-                    : ConnectionRequestDirection.INCOMING));
+    return PageDTO.from(requests, ConnectionRequestDTO::from);
   }
 
   private ConnectionRequestDirection parseDirection(String direction) {
@@ -89,7 +80,7 @@ public class ConnectionRequestController {
   }
 
   @PostMapping
-  @ResponseStatus(HttpStatus.CREATED)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   public void sendConnectionRequest(@RequestBody NewConnectionRequestDTO connectionRequestDTO) {
     if (connectionRequestDTO.subject() == null) {
       throw new BadRequestException("subject is required");
@@ -112,7 +103,6 @@ public class ConnectionRequestController {
                     new BadRequestException(
                         "user '" + connectionRequestDTO.subject() + "' does not exist"));
 
-    // TODO enable users to resend requests after time has passed
     if (connectionRequestService.existsForConnectorAndConnectee(connector, connectee)) {
       throw new BadRequestException("request to subject already exists");
     }
@@ -120,9 +110,7 @@ public class ConnectionRequestController {
     ConnectionRequest request = connectionRequestService.save(connector, connectee);
 
     messagingService.sendToUser(
-        connectee,
-        Broker.CONNECTION_REQUESTS,
-        ConnectionRequestDTO.from(request, ConnectionRequestDirection.INCOMING));
+        connectee, Broker.SEND_CONNECTION_REQUESTS, ConnectionRequestDTO.from(request));
   }
 
   @PatchMapping("{id}")
@@ -130,69 +118,56 @@ public class ConnectionRequestController {
   @Transactional
   public void updateConnectionRequest(
       @RequestBody UpdateConnectionRequestDTO updateDTO, @PathVariable UUID id) {
+    ConnectionRequest request =
+        connectionRequestService
+            .getByIdIfUserIsConnectee(id, authenticationProvider.getAuthenticatedUser())
+            .orElseThrow(NotFoundException::new);
+
     if (updateDTO.state() != null) {
-      User user = authenticationProvider.getAuthenticatedUser();
-
-      ConnectionRequest request =
-          connectionRequestService
-              .findOne(
-                  (configurer) -> {
-                    configurer.hasId(id);
-                    configurer.hasUser(user, ConnectionRequestDirection.TWO_WAY);
-                  })
-              .orElseThrow(NotFoundException::new);
-
-      ConnectionRequestState newState =
-          ConnectionRequestState.tryParse(updateDTO.state())
-              .orElseThrow(() -> new BadRequestException(getInvalidStateMessage()));
-
-      updateState(user, request, newState);
+      updateState(request, updateDTO.state());
     }
   }
 
-  private String getInvalidStateMessage() {
-    return "state is invalid (valid values: ["
-        + String.join(
-            ", ",
-            Arrays.stream(ConnectionRequestState.values())
-                .map(state -> state.name().toLowerCase())
-                .toList())
-        + "]";
-  }
+  private void updateState(ConnectionRequest request, String newState) {
+    String unrecognizedStateMessage = "state '" + newState + "' is not recognized";
+    String invalidStateMessage = "state '" + newState + "' is invalid for this request";
 
-  private void updateState(User user, ConnectionRequest request, ConnectionRequestState newState) {
-    if (request.getConnector().getUsername().equals(user.getUsername())) {
-      throw new ForbiddenException(
-          "state is illegal, only state of received requests can be modified");
-    }
+    ConnectionRequestState state =
+        ConnectionRequestState.tryParse(newState)
+            .orElseThrow(() -> new BadRequestException(unrecognizedStateMessage));
 
-    if (newState.equals(request.getState())) {
-      return;
-    }
-
-    switch (request.getState()) {
-      case IGNORED, ACCEPTED, REJECTED:
-        throw new ForbiddenException(
-            "state is illegal: can't update when request is '"
-                + request.getState().name().toLowerCase()
-                + "'");
+    switch (state) {
+      case SEND:
+        throw new BadRequestException(unrecognizedStateMessage);
       case SEEN:
-        if (newState.equals(ConnectionRequestState.SEND)) {
-          throw new BadRequestException("state is invalid: can't unsee request");
+        switch (request.getState()) {
+          case SEND:
+            request.setState(ConnectionRequestState.SEEN);
+            connectionRequestService.update(request);
+            break;
+          case SEEN:
+            break;
+          default:
+            throw new BadRequestException(invalidStateMessage);
         }
         break;
-      default:
+      case REJECTED:
+      case IGNORED:
+      case ACCEPTED:
+        if (request.getState() != ConnectionRequestState.SEND
+            && request.getState() != ConnectionRequestState.SEEN) {
+          throw new BadRequestException(invalidStateMessage);
+        }
+        request.setState(state);
+        connectionRequestService.update(request);
+
+        if (state != ConnectionRequestState.IGNORED) {
+          messagingService.sendToUser(
+              request.getConnector(),
+              Broker.ANSWERED_CONNECTION_REQUESTS,
+              AnsweredConnectionRequestDTO.from(request));
+        }
         break;
-    }
-
-    request.setState(newState);
-
-    if (newState.equals(ConnectionRequestState.ACCEPTED)
-        || newState.equals(ConnectionRequestState.REJECTED)) {
-      messagingService.sendToUser(
-          request.getConnector(),
-          Broker.CONNECTION_REQUESTS,
-          ConnectionRequestDTO.from(request, ConnectionRequestDirection.OUTGOING));
     }
   }
 }

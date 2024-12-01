@@ -61,8 +61,6 @@ export default function ChatPage() {
   );
 
   function handleNewMessage(message: Message) {
-    console.log("NEW MESSAGE", message);
-
     setMessages((oldMessages) => {
       if (!oldMessages) {
         return undefined;

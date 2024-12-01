@@ -1,9 +1,9 @@
-enum ConnectionRequestState {
-  SEND = "SEND",
-  SEEN = "SEEN",
-  IGNORED = "IGNORED",
-  ACCEPTED = "ACCEPTED",
-  REJECTED = "REJECTED",
-}
+// enum ConnectionRequestState {
+//   SEND = "SEND",
+//   SEEN = "SEEN",
+//   IGNORED = "IGNORED",
+//   ACCEPTED = "ACCEPTED",
+//   REJECTED = "REJECTED",
+// }
 
-export default ConnectionRequestState;
+// export default ConnectionRequestState;

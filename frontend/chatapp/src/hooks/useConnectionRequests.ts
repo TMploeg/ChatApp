@@ -1,21 +1,28 @@
 import ApiRoute from "../enums/ApiRoute";
-import ConnectionRequestState from "../enums/ConnectionRequestState";
-import { ConnectionRequest } from "../models/connection-request";
+import ConnectionRequestAnswerType from "../enums/ConnectionRequestAnswerType";
+import { SendConnectionRequest } from "../models/connection-request";
 import useApi from "./useApi";
 
 export default function useConnectionRequests() {
   const { patch } = useApi();
 
-  function updateState(
-    request: ConnectionRequest,
-    newState: ConnectionRequestState
-  ): Promise<void> {
+  function markRequestSeen(request: SendConnectionRequest) {
     return patch<void>(ApiRoute.SINGLE_CONNECTION_REQUEST(request.id), {
-      state: newState,
+      state: "SEEN",
+    });
+  }
+
+  function answerRequest(
+    request: SendConnectionRequest,
+    answerType: ConnectionRequestAnswerType
+  ) {
+    return patch<void>(ApiRoute.SINGLE_CONNECTION_REQUEST(request.id), {
+      state: answerType,
     });
   }
 
   return {
-    updateState,
+    markRequestSeen,
+    answerRequest,
   };
 }
