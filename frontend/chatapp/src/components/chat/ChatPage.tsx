@@ -24,8 +24,12 @@ export default function ChatPage() {
   }
 
   useEffect(() => {
+    if (!id) {
+      return;
+    }
+
     const subscription = subscriptions.subscribe<Message>(
-      StompBroker.CHAT,
+      StompBroker.CHAT(id),
       (message) => handleNewMessage(message)
     );
 
@@ -57,9 +61,7 @@ export default function ChatPage() {
   );
 
   function handleNewMessage(message: Message) {
-    if (id != message.groupId) {
-      return;
-    }
+    console.log("NEW MESSAGE", message);
 
     setMessages((oldMessages) => {
       if (!oldMessages) {

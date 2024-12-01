@@ -44,6 +44,7 @@ public class ChatController {
     User user = authenticationProvider.getAuthenticatedUser();
 
     ChatMessage message = chatMessageService.save(newMessageDTO.content(), user, groupId);
-    messagingService.send(Broker.CHAT, ChatMessageDTO.from(message));
+    messagingService.send(
+        Broker.CHAT.withSubDestination("/" + groupId), ChatMessageDTO.from(message));
   }
 }

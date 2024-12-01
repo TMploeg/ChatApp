@@ -1,5 +1,6 @@
 export default class StompBroker {
-  public static readonly CHAT = new StompBroker("/queue/chat");
+  public static readonly CHAT = (group: string) =>
+    new StompBroker(`/queue/chat/${group}`);
   public static readonly CONNECTION_REQUESTS = new StompBroker(
     "/user/queue/connection-requests"
   );
