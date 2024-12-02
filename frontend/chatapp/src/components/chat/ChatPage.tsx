@@ -68,18 +68,20 @@ export default function ChatPage() {
       {chatGroup && (
         <div className="chat-page-title">
           <GroupName group={chatGroup} onNameChanged={handleNameChanged} />
-          <div className="users-dropdown-container">
-            <Button
-              variant="secondary"
-              onClick={() => setUsersDropdownVisible((visible) => !visible)}
-            >
-              <BsPersonLinesFill />
-            </Button>
-            <GroupUsersDropdown
-              visible={usersDropdownVisible}
-              users={chatGroup.getUsers()}
-            />
-          </div>
+          {!chatGroup.isClosed && (
+            <div className="users-dropdown-container">
+              <Button
+                variant="secondary"
+                onClick={() => setUsersDropdownVisible((visible) => !visible)}
+              >
+                <BsPersonLinesFill />
+              </Button>
+              <GroupUsersDropdown
+                visible={usersDropdownVisible}
+                users={chatGroup.getUsers()}
+              />
+            </div>
+          )}
         </div>
       )}
       <Chat
