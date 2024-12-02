@@ -4,15 +4,13 @@ export default class ChatGroup {
   private readonly id: string;
   private readonly users: User[];
   private readonly closed: boolean;
-  private readonly name?: string;
+  private name?: string;
 
   public static from(data: ChatGroupData): ChatGroup {
-    console.log(data);
     return new ChatGroup(data.id, data.users, data.closed, data.name);
   }
 
   public static closed(data: ClosedChatGroupData) {
-    console.log(data);
     return new ChatGroup(data.id, [data.subject], true);
   }
 
@@ -36,33 +34,29 @@ export default class ChatGroup {
     return this.users;
   }
 
-  public getName(): string {
+  public getName(): string | undefined {
     if (this.closed) {
       return this.users[0].username;
     }
 
-    return this.name ?? this.getPlaceholderGroupName();
+    return this.name;
   }
 
-  public getClosed(): boolean {
+  public setName(name: string): void {
+    this.name = name;
+  }
+
+  public isClosed(): boolean {
     return this.closed;
   }
 
-  private getPlaceholderGroupName(): string {
-    console.log("ID", this.id);
+  public getUsersDisplayData(): UsersDisplayData {
     const maxDisplayCount = 2;
 
-    let name = this.users
-      .slice(0, maxDisplayCount)
-      .map((user) => user.username)
-      .join(", ");
-
-    const rem = this.users.length - maxDisplayCount;
-    if (rem > 0) {
-      name += ` and ${rem} other users`;
-    }
-
-    return name;
+    return {
+      users: this.users.slice(0, maxDisplayCount),
+      remaining: this.users.length - maxDisplayCount,
+    };
   }
 }
 
@@ -76,4 +70,9 @@ export interface ChatGroupData {
 export interface ClosedChatGroupData {
   id: string;
   subject: User;
+}
+
+export interface UsersDisplayData {
+  users: User[];
+  remaining: number;
 }

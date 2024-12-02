@@ -4,6 +4,7 @@ import com.tmploeg.chatapp.ApiRoutes;
 import com.tmploeg.chatapp.chat.chatgroup.dtos.ChatGroupDTO;
 import com.tmploeg.chatapp.chat.chatgroup.dtos.ClosedChatGroupDTO;
 import com.tmploeg.chatapp.chat.chatgroup.dtos.NewChatGroupDTO;
+import com.tmploeg.chatapp.chat.chatgroup.dtos.UpdateChatGroupDTO;
 import com.tmploeg.chatapp.connections.ConnectionService;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
 import com.tmploeg.chatapp.exceptions.ForbiddenException;
@@ -54,15 +55,10 @@ public class ChatGroupController {
   public ChatGroupDTO getChatGroup(@PathVariable String id) {
     User user = authenticationProvider.getAuthenticatedUser();
 
-    UUID parsedId;
-    try {
-      parsedId = UUID.fromString(id);
-    } catch (IllegalArgumentException ignored) {
-      throw new NotFoundException();
-    }
-
     ChatGroup chatGroup =
-        chatGroupService.getByIdForUser(parsedId, user).orElseThrow(NotFoundException::new);
+        parseId(id)
+            .flatMap(parsedId -> chatGroupService.getByIdForUser(parsedId, user))
+            .orElseThrow(NotFoundException::new);
 
     return ChatGroupDTO.from(chatGroup, user);
   }
@@ -149,6 +145,10 @@ public class ChatGroupController {
       return chatGroupService.create(users);
     }
 
+    if (newChatGroupDTO.name().isBlank()) {
+      throw new BadRequestException("name must have at least one character");
+    }
+
     return chatGroupService.create(users, newChatGroupDTO.name());
   }
 
@@ -156,6 +156,36 @@ public class ChatGroupController {
 
     for (User user : newGroup.getUsers()) {
       messagingService.sendToUser(user, Broker.CHAT_GROUPS, ChatGroupDTO.from(newGroup, user));
+    }
+  }
+
+  @PatchMapping("{id}")
+  public ChatGroupDTO updateChatGroup(
+      @PathVariable String id, @RequestBody UpdateChatGroupDTO updateDTO) {
+    User user = authenticationProvider.getAuthenticatedUser();
+
+    ChatGroup chatGroup =
+        parseId(id)
+            .flatMap(parsedId -> chatGroupService.getByIdForUser(parsedId, user))
+            .orElseThrow(NotFoundException::new);
+
+    if (updateDTO.name() != null) {
+      if (updateDTO.name().isBlank()) {
+        throw new BadRequestException("name must have at least one character");
+      }
+
+      chatGroup.setName(updateDTO.name());
+      chatGroupService.update(chatGroup);
+    }
+
+    return ChatGroupDTO.from(chatGroup, user);
+  }
+
+  private Optional<UUID> parseId(String id) {
+    try {
+      return Optional.of(UUID.fromString(id));
+    } catch (IllegalArgumentException ignored) {
+      return Optional.empty();
     }
   }
 }

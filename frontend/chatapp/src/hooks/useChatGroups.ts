@@ -7,7 +7,7 @@ import Connection from "../models/connection";
 import useApi from "./useApi";
 
 export default function useChatGroups() {
-  const { get, post } = useApi();
+  const { get, post, patch } = useApi();
 
   async function findClosedGroupForConnection(
     connection: Connection
@@ -43,5 +43,26 @@ export default function useChatGroups() {
     }).then((group) => ChatGroup.from(group));
   }
 
-  return { findClosedGroupForConnection, createClosedGroup, createMultiGroup };
+  function getById(id: string): Promise<ChatGroup> {
+    return get<ChatGroupData>(ApiRoute.SINGLE_CHAT_GROUP(id)).then(
+      ChatGroup.from
+    );
+  }
+
+  function changeName(
+    chatGroup: ChatGroup,
+    newName: string
+  ): Promise<ChatGroup> {
+    return patch<ChatGroupData>(ApiRoute.SINGLE_CHAT_GROUP(chatGroup.getId()), {
+      name: newName,
+    }).then((data) => ChatGroup.from(data));
+  }
+
+  return {
+    findClosedGroupForConnection,
+    createClosedGroup,
+    createMultiGroup,
+    getById,
+    changeName,
+  };
 }

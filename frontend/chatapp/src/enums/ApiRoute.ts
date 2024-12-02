@@ -10,6 +10,8 @@ export default class ApiRoute {
   public static readonly CHAT_GROUPS = () => new ApiRoute(Route.CHAT_GROUPS);
   public static readonly CLOSED_CHAT_GROUPS = () =>
     new ApiRoute(Route.CHAT_GROUPS + "/closed");
+  public static readonly SINGLE_CHAT_GROUP = (id: string) =>
+    new ApiRoute(`${Route.CHAT_GROUPS}/${id}`);
 
   public readonly destination: string;
 

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.util.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @NoArgsConstructor
@@ -14,7 +15,7 @@ public class ChatGroup {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  private String name;
+  @Setter private String name;
 
   @Getter
   @ManyToMany(fetch = FetchType.EAGER)

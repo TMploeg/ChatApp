@@ -24,6 +24,7 @@ import Connection from "./models/connection";
 import Page from "./models/page";
 import ApiRoute from "./enums/ApiRoute";
 import ConnectionRequestAnswerType from "./enums/ConnectionRequestAnswerType";
+import ChatGroup from "./models/chat-group";
 
 interface AppProps {
   loggedIn: boolean;
