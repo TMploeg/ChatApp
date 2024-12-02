@@ -18,7 +18,7 @@ public class Seeder implements CommandLineRunner {
   private final UserRepository userRepository;
   private final ConnectionRequestRepository connectionRequestRepository;
 
-  private static final int SEED_USER_COUNT = 100;
+  private static final int SEED_USER_COUNT = 20;
 
   @Override
   public void run(String... args) throws Exception {
