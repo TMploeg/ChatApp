@@ -58,7 +58,6 @@ export default function ChatMenu({ connected }: Props) {
           show={addGroupChatDialogVisible}
           onHide={() => setAddGroupChatDialogVisible(false)}
           onCreated={(group) => {
-            addChatGroup(group);
             navigate(AppRoute.CHAT(group.getId()));
           }}
         />

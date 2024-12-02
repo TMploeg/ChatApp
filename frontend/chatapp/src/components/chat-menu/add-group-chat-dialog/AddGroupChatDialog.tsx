@@ -48,6 +48,7 @@ export default function AddGroupChatDialog({ show, onHide, onCreated }: Props) {
             }
           />
         </FormGroup>
+
         {visibleConnections ? (
           <Dropdown>
             <Dropdown.Toggle
