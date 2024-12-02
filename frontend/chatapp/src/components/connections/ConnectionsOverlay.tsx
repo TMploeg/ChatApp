@@ -23,7 +23,7 @@ export default function ConnectionsOverlay({
   const [addUserModalVisible, setAddUserModalVisible] =
     useState<boolean>(false);
 
-  const { createPrivateGroup } = useChatGroups();
+  const { findClosedGroupForConnection, createClosedGroup } = useChatGroups();
 
   const navigate = useAppNavigate();
 
@@ -66,10 +66,13 @@ export default function ConnectionsOverlay({
     </Modal>
   );
 
-  function handleConnectionClicked(connection: Connection) {
+  async function handleConnectionClicked(connection: Connection) {
+    const connectionGroup =
+      (await findClosedGroupForConnection(connection)) ??
+      (await createClosedGroup(connection.username));
+
+    navigate(AppRoute.CHAT(connectionGroup.getId()));
+
     onHide();
-    createPrivateGroup(connection.username).then((createdGroup) =>
-      navigate(AppRoute.CHAT(createdGroup.getId()))
-    );
   }
 }

@@ -7,13 +7,13 @@ import lombok.NoArgsConstructor;
 
 @Entity(name = "users")
 @NoArgsConstructor
-@Getter
 public class User implements Principal {
-  @Id private String username;
+  @Id @Getter private String username;
 
-  private String password;
+  @Getter private String password;
 
   @Enumerated(EnumType.ORDINAL)
+  @Getter
   private UserRole role;
 
   public User(String username, String password) {

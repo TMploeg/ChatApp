@@ -8,6 +8,8 @@ export default class ApiRoute {
     new ApiRoute(`${Route.CONNECTION_REQUESTS}/${id}`);
   public static readonly CONNECTIONS = () => new ApiRoute(Route.CONNECTIONS);
   public static readonly CHAT_GROUPS = () => new ApiRoute(Route.CHAT_GROUPS);
+  public static readonly CLOSED_CHAT_GROUPS = () =>
+    new ApiRoute(Route.CHAT_GROUPS + "/closed");
 
   public readonly destination: string;
 

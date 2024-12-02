@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import java.util.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @NoArgsConstructor
@@ -21,15 +20,17 @@ public class ChatGroup {
   @ManyToMany(fetch = FetchType.EAGER)
   private Set<User> users = new HashSet<>();
 
-  @Getter @Setter private boolean mutable = false;
+  @Getter private boolean closed = true;
 
-  public ChatGroup(Set<User> users) {
+  public ChatGroup(Set<User> users, boolean closed) {
     this.users = users;
+    this.closed = closed;
   }
 
-  public ChatGroup(String name, Set<User> users) {
+  public ChatGroup(String name, Set<User> users, boolean closed) {
     this.users = users;
     this.name = name;
+    this.closed = closed;
   }
 
   public Optional<String> getName() {

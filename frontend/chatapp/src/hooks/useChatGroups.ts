@@ -1,15 +1,35 @@
 import ApiRoute from "../enums/ApiRoute";
-import ChatGroup, { ChatGroupData } from "../models/chat-group";
+import ChatGroup, {
+  ChatGroupData,
+  ClosedChatGroupData,
+} from "../models/chat-group";
+import Connection from "../models/connection";
 import useApi from "./useApi";
 
 export default function useChatGroups() {
-  const { post } = useApi();
+  const { get, post } = useApi();
 
-  function createPrivateGroup(username: string): Promise<ChatGroup> {
+  async function findClosedGroupForConnection(
+    connection: Connection
+  ): Promise<ChatGroup | null> {
+    const groups = await get<ClosedChatGroupData[]>(
+      ApiRoute.CLOSED_CHAT_GROUPS()
+    );
+
+    for (let group of groups) {
+      if (group.subject.username === connection.username) {
+        return ChatGroup.closed(group);
+      }
+    }
+
+    return null;
+  }
+
+  function createClosedGroup(username: string): Promise<ChatGroup> {
     return post<ChatGroupData>(ApiRoute.CHAT_GROUPS(), {
       usernames: [username],
-      mutable: false,
-    }).then((createdGroup) => new ChatGroup(createdGroup));
+      closed: true,
+    }).then((createdGroup) => ChatGroup.from(createdGroup));
   }
 
   function createMultiGroup(
@@ -18,10 +38,10 @@ export default function useChatGroups() {
   ): Promise<ChatGroup> {
     return post<ChatGroupData>(ApiRoute.CHAT_GROUPS(), {
       usernames,
-      mutable: true,
       name,
-    }).then((group) => new ChatGroup(group));
+      closed: false,
+    }).then((group) => ChatGroup.from(group));
   }
 
-  return { createPrivateGroup, createMultiGroup };
+  return { findClosedGroupForConnection, createClosedGroup, createMultiGroup };
 }

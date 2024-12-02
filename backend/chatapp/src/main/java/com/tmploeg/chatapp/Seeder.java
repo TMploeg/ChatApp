@@ -2,6 +2,7 @@ package com.tmploeg.chatapp;
 
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequest;
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequestRepository;
+import com.tmploeg.chatapp.connectionrequests.ConnectionRequestState;
 import com.tmploeg.chatapp.users.User;
 import com.tmploeg.chatapp.users.UserRepository;
 import java.time.LocalDateTime;
@@ -23,7 +24,17 @@ public class Seeder implements CommandLineRunner {
   @Override
   public void run(String... args) throws Exception {
     seedUsers();
-    seedConnectionRequests();
+    //    seedConnectionRequests();
+
+    User user_0 = userRepository.findById("testuser_0").get();
+    for (User user :
+        userRepository.findAll().stream()
+            .filter(u -> !u.getUsername().equals("testuser_0"))
+            .toList()) {
+      ConnectionRequest request = new ConnectionRequest(user_0, user, LocalDateTime.now());
+      request.setState(ConnectionRequestState.ACCEPTED);
+      connectionRequestRepository.save(request);
+    }
   }
 
   private void seedUsers() {

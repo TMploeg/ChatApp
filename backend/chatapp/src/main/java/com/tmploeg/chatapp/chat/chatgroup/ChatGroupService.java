@@ -1,9 +1,7 @@
 package com.tmploeg.chatapp.chat.chatgroup;
 
 import com.tmploeg.chatapp.users.User;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +14,10 @@ public class ChatGroupService {
     return chatGroupRepository.findChatGroupsForUser(user);
   }
 
+  public Set<ChatGroup> getClosedChatGroups(User user) {
+    return chatGroupRepository.findClosedChatGroupsForUser(user);
+  }
+
   public Optional<ChatGroup> getByIdForUser(UUID id, User user) {
     return chatGroupRepository.findByIdForUser(id, user);
   }
@@ -25,11 +27,19 @@ public class ChatGroupService {
   }
 
   public ChatGroup create(Set<User> users) {
-    return chatGroupRepository.save(new ChatGroup(users));
+    return chatGroupRepository.save(new ChatGroup(users, false));
   }
 
   public ChatGroup create(Set<User> users, String name) {
-    return chatGroupRepository.save(new ChatGroup(name, users));
+    return chatGroupRepository.save(new ChatGroup(name, users, false));
+  }
+
+  public ChatGroup createClosedGroup(Set<User> users) {
+    return chatGroupRepository.save(new ChatGroup(users, true));
+  }
+
+  public boolean closedGroupExistsForUsers(Collection<User> users) {
+    return chatGroupRepository.existsForUsers(users);
   }
 
   public void update(ChatGroup chatGroup) {

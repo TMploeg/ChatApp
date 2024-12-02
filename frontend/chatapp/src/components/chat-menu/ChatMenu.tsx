@@ -35,12 +35,12 @@ export default function ChatMenu({ connected }: Props) {
     }
 
     get<ChatGroupData[]>(ApiRoute.CHAT_GROUPS()).then((groups) =>
-      setChatGroups(groups.map((group) => new ChatGroup(group)))
+      setChatGroups(groups.map((group) => ChatGroup.from(group)))
     );
 
     const subscription = subscriptions.subscribe<ChatGroupData>(
       StompBroker.CHAT_GROUPS,
-      (newGroup) => addChatGroup(new ChatGroup(newGroup))
+      (newGroup) => addChatGroup(ChatGroup.from(newGroup))
     );
 
     return () => subscription.unsubscribe();

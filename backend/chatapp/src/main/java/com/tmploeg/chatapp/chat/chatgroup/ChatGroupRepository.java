@@ -1,6 +1,7 @@
 package com.tmploeg.chatapp.chat.chatgroup;
 
 import com.tmploeg.chatapp.users.User;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -15,6 +16,13 @@ public interface ChatGroupRepository extends JpaRepository<ChatGroup, UUID> {
           + "ORDER BY (SELECT MAX(cM.sendAt) FROM ChatMessage cM WHERE cM.group = cG)")
   Set<ChatGroup> findChatGroupsForUser(@Param("user") User user);
 
+  @Query(
+      "SELECT cG FROM ChatGroup cG "
+          + "WHERE :user MEMBER OF cG.users "
+          + "AND cG.closed = true "
+          + "ORDER BY (SELECT MAX(cM.sendAt) FROM ChatMessage cM WHERE cM.group = cG)")
+  Set<ChatGroup> findClosedChatGroupsForUser(@Param("user") User user);
+
   @Query("SELECT cG FROM ChatGroup cG " + "WHERE :user MEMBER OF cG.users " + "AND cG.id = :id ")
   Optional<ChatGroup> findByIdForUser(@Param("id") UUID id, @Param("user") User user);
 
@@ -23,4 +31,9 @@ public interface ChatGroupRepository extends JpaRepository<ChatGroup, UUID> {
           + "WHERE :username IN (SELECT u.username FROM cG.users u) "
           + "AND cG.id = :id ")
   boolean existsByIdForUser(@Param("id") UUID id, @Param("username") String username);
+
+  @Query(
+      "SELECT COUNT(cG) > 0 FROM ChatGroup cG "
+          + "WHERE (SELECT COUNT(u) FROM cG.users u WHERE u NOT IN :users) = 0")
+  boolean existsForUsers(@Param("users") Collection<User> users);
 }

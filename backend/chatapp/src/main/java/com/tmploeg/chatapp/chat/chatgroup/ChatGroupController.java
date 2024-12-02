@@ -1,8 +1,12 @@
 package com.tmploeg.chatapp.chat.chatgroup;
 
 import com.tmploeg.chatapp.ApiRoutes;
+import com.tmploeg.chatapp.chat.chatgroup.dtos.ChatGroupDTO;
+import com.tmploeg.chatapp.chat.chatgroup.dtos.ClosedChatGroupDTO;
+import com.tmploeg.chatapp.chat.chatgroup.dtos.NewChatGroupDTO;
 import com.tmploeg.chatapp.connections.ConnectionService;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
+import com.tmploeg.chatapp.exceptions.ForbiddenException;
 import com.tmploeg.chatapp.exceptions.NotFoundException;
 import com.tmploeg.chatapp.messaging.Broker;
 import com.tmploeg.chatapp.messaging.MessagingService;
@@ -11,6 +15,7 @@ import com.tmploeg.chatapp.users.User;
 import com.tmploeg.chatapp.users.UserService;
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +38,15 @@ public class ChatGroupController {
 
     return chatGroupService.getChatGroups(user).stream()
         .map(group -> ChatGroupDTO.from(group, user))
+        .toList();
+  }
+
+  @GetMapping("closed")
+  public List<ClosedChatGroupDTO> getClosedChatGroups() {
+    User user = authenticationProvider.getAuthenticatedUser();
+
+    return chatGroupService.getClosedChatGroups(user).stream()
+        .map((group) -> ClosedChatGroupDTO.from(group, user))
         .toList();
   }
 
@@ -62,44 +76,80 @@ public class ChatGroupController {
     if (newChatGroupDTO.usernames().length == 0) {
       throw new BadRequestException("usernames can't be empty");
     }
+    if (newChatGroupDTO.closed() && newChatGroupDTO.usernames().length > 1) {
+      throw new BadRequestException("closed requests can have only one username");
+    }
 
     User groupCreator = authenticationProvider.getAuthenticatedUser();
 
-    List<String> nonConnectedUsernames =
-        getNonConnectedUsernames(groupCreator, Arrays.asList(newChatGroupDTO.usernames()));
-    if (!nonConnectedUsernames.isEmpty()) {
+    if (hasNonConnectedUser(groupCreator, newChatGroupDTO.usernames())) {
       throw new BadRequestException(
-          "usernames is invalid, users "
-              + String.join(", ", nonConnectedUsernames + " are not in your connections"));
+          "usernames is invalid, one or more are not in your connections");
     }
 
-    Set<User> groupUsers = new HashSet<>(newChatGroupDTO.usernames().length + 1);
-    groupUsers.add(groupCreator);
+    Set<User> groupUsers = getGroupUsers(groupCreator, newChatGroupDTO.usernames());
 
-    for (String username : newChatGroupDTO.usernames()) {
-      User user =
-          userService
-              .findByUsername(username)
-              .orElseThrow(
-                  () -> new BadRequestException("one or more users in 'usernames' is invalid"));
-
-      groupUsers.add(user);
+    if (newChatGroupDTO.closed()) {
+      if (chatGroupService.closedGroupExistsForUsers(groupUsers)) {
+        throw new ForbiddenException("chat group already exists");
+      }
     }
 
-    ChatGroup group =
-        newChatGroupDTO.name() == null
-            ? chatGroupService.create(groupUsers)
-            : chatGroupService.create(groupUsers, newChatGroupDTO.name());
+    ChatGroup newGroup = createChatGroup(newChatGroupDTO, groupUsers);
 
-    if (newChatGroupDTO.mutable()) {
-      group.setMutable(true);
-      chatGroupService.update(group);
+    sendNewChatGroupMessage(newGroup);
+
+    URI uri =
+        ucb.path("/api/v1/chatgroups/{id}").buildAndExpand(newGroup.getId().toString()).toUri();
+    return ResponseEntity.created(uri).body(ChatGroupDTO.from(newGroup, groupCreator));
+  }
+
+  private boolean hasNonConnectedUser(User creator, String[] usernames) {
+    Set<User> connectedUsers = connectionService.getConnectedUsers(creator);
+
+    for (String username : usernames) {
+      boolean anyMatch = false;
+
+      for (User connectedUser : connectedUsers) {
+        if (connectedUser.getUsername().equals(username)) {
+          anyMatch = true;
+          break;
+        }
+      }
+
+      if (!anyMatch) {
+        return true;
+      }
     }
 
-    sendNewChatGroupMessage(group);
+    return false;
+  }
 
-    URI uri = ucb.path("/api/v1/chatgroups/{id}").buildAndExpand(group.getId().toString()).toUri();
-    return ResponseEntity.created(uri).body(ChatGroupDTO.from(group, groupCreator));
+  private Set<User> getGroupUsers(User creator, String[] usernames) {
+    Set<User> groupUsers =
+        Arrays.stream(usernames)
+            .map(
+                username ->
+                    userService
+                        .findByUsername(username)
+                        .orElseThrow(
+                            () -> new BadRequestException("one or more usernames not found")))
+            .collect(Collectors.toSet());
+    groupUsers.add(creator);
+
+    return groupUsers;
+  }
+
+  private ChatGroup createChatGroup(NewChatGroupDTO newChatGroupDTO, Set<User> users) {
+    if (newChatGroupDTO.closed()) {
+      return chatGroupService.createClosedGroup(users);
+    }
+
+    if (newChatGroupDTO.name() == null) {
+      return chatGroupService.create(users);
+    }
+
+    return chatGroupService.create(users, newChatGroupDTO.name());
   }
 
   private void sendNewChatGroupMessage(ChatGroup newGroup) {
@@ -107,13 +157,5 @@ public class ChatGroupController {
     for (User user : newGroup.getUsers()) {
       messagingService.sendToUser(user, Broker.CHAT_GROUPS, ChatGroupDTO.from(newGroup, user));
     }
-  }
-
-  private List<String> getNonConnectedUsernames(User groupCreator, List<String> usernames) {
-    Set<User> connectedUsers = connectionService.getConnectedUsers(groupCreator);
-    return usernames.stream()
-        .filter(
-            username -> connectedUsers.stream().noneMatch(u -> u.getUsername().equals(username)))
-        .toList();
   }
 }
