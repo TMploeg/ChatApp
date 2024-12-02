@@ -1,0 +1,30 @@
+@import "../../../../scss/custom.module.scss";
+
+.group-users-dropdown {
+  margin-top: 5px;
+  position: absolute;
+  width: max-content;
+
+  right: 0px;
+
+  background-color: $secondary;
+  filter: brightness(80%);
+
+  padding: 12px;
+  border-color: darken($secondary, 10%);
+  border-width: 3px;
+  border-style: solid;
+  border-radius: 5px;
+}
+
+.user-display {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+.user-display-username {
+  font-size: 1.5em;
+  padding-left: 8px;
+  padding-right: 8px;
+}

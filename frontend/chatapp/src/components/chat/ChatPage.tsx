@@ -10,10 +10,15 @@ import { ChangeHandlerContext, SubscriptionContext } from "../../context";
 import StompBroker from "../../enums/StompBroker";
 import ChatGroup, { UsersDisplayData } from "../../models/chat-group";
 import ChangeHandlerName from "../../enums/ChangeHandlerName";
+import { Button, Dropdown, Overlay } from "react-bootstrap";
+import { BsPeopleFill, BsPersonLinesFill } from "react-icons/bs";
+import GroupUsersDropdown from "./group-users-dropdown/GroupUsersDropdown";
 
 export default function ChatPage() {
   const [chatGroup, setChatGroup] = useState<ChatGroup>();
   const [messages, setMessages] = useState<Message[]>();
+  const [usersDropdownVisible, setUsersDropdownVisible] =
+    useState<boolean>(false);
 
   const { get, post } = useApi();
   const navigate = useAppNavigate();
@@ -41,6 +46,8 @@ export default function ChatPage() {
 
     loadChatGroup(id);
 
+    setUsersDropdownVisible(false);
+
     return () => {
       setChatGroup(undefined);
       setMessages(undefined);
@@ -61,6 +68,18 @@ export default function ChatPage() {
       {chatGroup && (
         <div className="chat-page-title">
           <GroupName group={chatGroup} onNameChanged={handleNameChanged} />
+          <div className="users-dropdown-container">
+            <Button
+              variant="secondary"
+              onClick={() => setUsersDropdownVisible((visible) => !visible)}
+            >
+              <BsPersonLinesFill />
+            </Button>
+            <GroupUsersDropdown
+              visible={usersDropdownVisible}
+              users={chatGroup.getUsers()}
+            />
+          </div>
         </div>
       )}
       <Chat

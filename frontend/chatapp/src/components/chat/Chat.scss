@@ -19,6 +19,7 @@ $name-display-font-size: 1.7em;
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
 
     .chat-name {
       padding-top: 8px;
@@ -176,4 +177,8 @@ $name-display-font-size: 1.7em;
   hr {
     margin-bottom: 8px;
   }
+}
+
+.users-dropdown-container {
+  position: relative;
 }
