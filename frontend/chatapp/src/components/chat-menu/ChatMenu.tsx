@@ -160,9 +160,9 @@ interface GroupIconProps extends IconBaseProps {
   group: ChatGroup;
 }
 function GroupIcon({ group }: GroupIconProps) {
-  if (group.getUsers().length > 2) {
-    return <BsPeopleFill size={NAV_ICON_SIZE} />;
+  if (group.isClosed()) {
+    return <BsPersonFill size={NAV_ICON_SIZE} />;
   }
 
-  return <BsPersonFill size={NAV_ICON_SIZE} />;
+  return <BsPeopleFill size={NAV_ICON_SIZE} />;
 }
