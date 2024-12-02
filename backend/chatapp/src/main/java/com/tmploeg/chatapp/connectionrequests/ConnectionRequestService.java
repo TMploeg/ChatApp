@@ -4,9 +4,11 @@ import com.tmploeg.chatapp.connectionrequests.specifications.ConnectionRequestSp
 import com.tmploeg.chatapp.connectionrequests.specifications.ConnectionRequestSpecificationBuilderFactory;
 import com.tmploeg.chatapp.connectionrequests.specifications.ConnectionRequestSpecificationConfigurer;
 import com.tmploeg.chatapp.users.User;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,8 +21,12 @@ public class ConnectionRequestService {
   private final ConnectionRequestRepository connectionRequestRepository;
   private final ConnectionRequestSpecificationBuilderFactory specificationBuilderFactory;
 
+  @Value("${app.connection-request-resend-delay.hrs}")
+  private int resendDelayHrs;
+
   public ConnectionRequest save(User connector, User connectee) {
-    return connectionRequestRepository.save(new ConnectionRequest(connector, connectee));
+    return connectionRequestRepository.save(
+        new ConnectionRequest(connector, connectee, LocalDateTime.now()));
   }
 
   public List<ConnectionRequest> findAll(
@@ -96,6 +102,15 @@ public class ConnectionRequestService {
         (configurer) -> {
           configurer.hasId(id);
           configurer.hasUser(user, ConnectionRequestDirection.TWO_WAY);
+        });
+  }
+
+  public boolean recentRequestToConnecteeExists(User connector, User connectee) {
+    return exists(
+        (configurer) -> {
+          configurer.hasUser(connector, ConnectionRequestDirection.OUTGOING);
+          configurer.hasUser(connectee, ConnectionRequestDirection.INCOMING);
+          configurer.sendAfter(LocalDateTime.now().minusHours(resendDelayHrs));
         });
   }
 

@@ -7,6 +7,7 @@ import com.tmploeg.chatapp.connectionrequests.dtos.NewConnectionRequestDTO;
 import com.tmploeg.chatapp.connectionrequests.dtos.UpdateConnectionRequestDTO;
 import com.tmploeg.chatapp.dtos.page.PageDTO;
 import com.tmploeg.chatapp.exceptions.BadRequestException;
+import com.tmploeg.chatapp.exceptions.ForbiddenException;
 import com.tmploeg.chatapp.exceptions.NotFoundException;
 import com.tmploeg.chatapp.messaging.Broker;
 import com.tmploeg.chatapp.messaging.MessagingService;
@@ -54,31 +55,6 @@ public class ConnectionRequestController {
     return PageDTO.from(requests, ConnectionRequestDTO::from);
   }
 
-  private ConnectionRequestDirection parseDirection(String direction) {
-    return direction == null
-        ? ConnectionRequestDirection.TWO_WAY
-        : ConnectionRequestDirection.tryParse(direction)
-            .orElseThrow(
-                () ->
-                    new BadRequestException(
-                        "direction is invalid (invalid value: '" + direction + "')"));
-  }
-
-  private List<ConnectionRequestState> parseStates(String[] states) {
-    List<ConnectionRequestState> targetStates = new ArrayList<>(states.length);
-
-    for (String state : states) {
-      targetStates.add(
-          ConnectionRequestState.tryParse(state)
-              .orElseThrow(
-                  () ->
-                      new BadRequestException(
-                          "state contains invalid value (invalid value: '" + state + "')")));
-    }
-
-    return targetStates;
-  }
-
   @PostMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void sendConnectionRequest(@RequestBody NewConnectionRequestDTO connectionRequestDTO) {
@@ -103,8 +79,8 @@ public class ConnectionRequestController {
                     new BadRequestException(
                         "user '" + connectionRequestDTO.subject() + "' does not exist"));
 
-    if (connectionRequestService.existsForConnectorAndConnectee(connector, connectee)) {
-      throw new BadRequestException("request to subject already exists");
+    if (connectionRequestService.recentRequestToConnecteeExists(connector, connectee)) {
+      throw new ForbiddenException("too early to resend request");
     }
 
     ConnectionRequest request = connectionRequestService.save(connector, connectee);

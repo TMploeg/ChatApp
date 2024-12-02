@@ -2,6 +2,7 @@ package com.tmploeg.chatapp.connectionrequests;
 
 import com.tmploeg.chatapp.users.User;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,9 +26,13 @@ public class ConnectionRequest {
   @Setter
   private ConnectionRequestState state;
 
-  public ConnectionRequest(User connector, User connectee) {
+  @Temporal(TemporalType.TIMESTAMP)
+  private LocalDateTime sendAt;
+
+  public ConnectionRequest(User connector, User connectee, LocalDateTime sendAt) {
     this.connector = connector;
     this.connectee = connectee;
     this.state = ConnectionRequestState.SEND;
+    this.sendAt = sendAt;
   }
 }

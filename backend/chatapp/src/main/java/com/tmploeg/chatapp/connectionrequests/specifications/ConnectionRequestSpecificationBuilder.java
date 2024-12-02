@@ -9,6 +9,7 @@ import com.tmploeg.chatapp.specifications.IdSpecification;
 import com.tmploeg.chatapp.specifications.PropertySpecification;
 import com.tmploeg.chatapp.users.User;
 import jakarta.persistence.criteria.*;
+import java.time.LocalDateTime;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -72,6 +73,14 @@ public class ConnectionRequestSpecificationBuilder
     }
 
     specifications.add(new PropertySpecification<>(states, "state"));
+  }
+
+  @Override
+  public void sendAfter(LocalDateTime timestamp) {
+    Specification<ConnectionRequest> sendAfterSpecification =
+        (root, query, builder) -> builder.greaterThan(root.get("sendAt"), timestamp);
+
+    specifications.add(sendAfterSpecification);
   }
 
   public void sorted(Sort sort) {

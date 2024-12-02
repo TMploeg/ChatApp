@@ -2,9 +2,9 @@ package com.tmploeg.chatapp;
 
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequest;
 import com.tmploeg.chatapp.connectionrequests.ConnectionRequestRepository;
-import com.tmploeg.chatapp.connectionrequests.ConnectionRequestState;
 import com.tmploeg.chatapp.users.User;
 import com.tmploeg.chatapp.users.UserRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -54,6 +54,8 @@ public class Seeder implements CommandLineRunner {
             .findById("testuser_0")
             .orElseThrow(() -> new RuntimeException("user not found"));
 
+    LocalDateTime now = LocalDateTime.now();
+
     for (int i = 0; i < users.size() - 1; i++) {
       if (r.nextDouble() > 0.75) {
         continue;
@@ -64,9 +66,7 @@ public class Seeder implements CommandLineRunner {
       User connector = r.nextBoolean() ? user0 : current;
       User connectee = connector == user0 ? current : user0;
 
-      ConnectionRequest request = new ConnectionRequest(connector, connectee);
-      request.setState(ConnectionRequestState.SEND);
-      requests.add(request);
+      requests.add(new ConnectionRequest(connector, connectee, now));
     }
 
     connectionRequestRepository.saveAll(requests);
