@@ -21,6 +21,8 @@
     opacity: 0;
 
     position: absolute;
+
+    transition: opacity 150ms;
   }
 }
 .icon-button:hover .overlay {
