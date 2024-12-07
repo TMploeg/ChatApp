@@ -127,7 +127,7 @@ public class ConnectionRequestSpecificationBuilder
                       authenticationProvider.getAuthenticatedUser().getUsername()),
                   root.get("connectee").get("username"))
               .otherwise(root.get("connector").get("username"));
-      case "state" -> root.get("state");
+      case "seen" -> builder.equal(root.get("state"), ConnectionRequestState.SEEN);
       default -> throw new BadRequestException("invalid sort property '" + property + "'");
     };
   }

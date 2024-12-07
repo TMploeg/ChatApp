@@ -2,17 +2,23 @@ import { BsFillPeopleFill } from "react-icons/bs";
 import NotificationData from "../models/notification-data";
 import ConnectionRequest, {
   AnsweredConnectionRequest,
-  SendConnectionRequest,
 } from "../models/connection-request";
 
 export default function useNotification() {
   function getSendConnectionRequestNotification(
-    request: SendConnectionRequest,
+    requests: ConnectionRequest[],
     params?: NotificationParams
   ): NotificationData {
+    if (requests.length === 0) {
+      throw new Error("requests should have at least one element");
+    }
+
     return {
-      ...defaultNotificationData(request, params),
-      text: `'${request.subject}' wants to connect with you.`,
+      ...defaultNotificationData(requests, params),
+      text:
+        requests.length > 1
+          ? "one or more users want to connect with you."
+          : `'${requests[0].subject}' wants to connect with you`,
     };
   }
 
@@ -21,7 +27,7 @@ export default function useNotification() {
     params?: NotificationParams
   ): NotificationData {
     return {
-      ...defaultNotificationData(request, params),
+      ...defaultNotificationData([request], params),
       text: request.accepted
         ? `'${request.subject}' accepted your connection request`
         : `'${request.subject}' rejected your connection request`,
@@ -40,11 +46,11 @@ interface NotificationParams {
 }
 
 function defaultNotificationData(
-  request: ConnectionRequest,
+  requests: ConnectionRequest[],
   params?: NotificationParams
 ): NotificationData {
   return {
-    id: request.id,
+    id: requests.map((r) => r.id).join("-"),
     icon: BsFillPeopleFill,
     title: "Connection Request",
     onClick: params?.onClick,

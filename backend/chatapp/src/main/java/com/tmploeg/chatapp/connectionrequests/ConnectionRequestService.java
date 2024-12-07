@@ -89,14 +89,6 @@ public class ConnectionRequestService {
     return connectionRequestRepository.exists(specificationBuilder.build());
   }
 
-  public boolean existsForConnectorAndConnectee(User connector, User connectee) {
-    return exists(
-        (configurer) -> {
-          configurer.hasUser(connector, ConnectionRequestDirection.OUTGOING);
-          configurer.hasUser(connectee, ConnectionRequestDirection.INCOMING);
-        });
-  }
-
   public Optional<ConnectionRequest> getByIdIfUserIsConnectee(UUID id, User user) {
     return findOne(
         (configurer) -> {

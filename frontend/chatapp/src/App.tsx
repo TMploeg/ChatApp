@@ -12,7 +12,7 @@ import ChatMenu from "./components/chat-menu/ChatMenu";
 import Routing from "./Routing";
 import useNotification from "./hooks/useNotification";
 import NotificationData from "./models/notification-data";
-import { useApi } from "./hooks";
+import { useApi, useConnectionRequests } from "./hooks";
 import StompBroker from "./enums/StompBroker";
 import {
   AnsweredConnectionRequest,
@@ -24,7 +24,6 @@ import Connection from "./models/connection";
 import Page from "./models/page";
 import ApiRoute from "./enums/ApiRoute";
 import ConnectionRequestAnswerType from "./enums/ConnectionRequestAnswerType";
-import ChatGroup from "./models/chat-group";
 
 interface AppProps {
   loggedIn: boolean;
@@ -63,8 +62,19 @@ export default function App({
       return;
     }
 
-    fetchConnectionRequests();
-    fetchConnections();
+    fetchConnectionRequests().then((requests) => {
+      const newRequests = requests.page.filter((request) => !request.seen);
+      if (newRequests.length > 0) {
+        onNewNotification(
+          getSendConnectionRequestNotification(newRequests, {
+            onClick: () => setConnectionRequestsVisible(true),
+          })
+        );
+      }
+
+      setConnectionRequestsPage(requests);
+    });
+    fetchConnections().then(setConnections);
 
     return () => {
       setConnectionRequestsPage(undefined);
@@ -142,7 +152,7 @@ export default function App({
           addConnectionRequest(request);
 
           onNewNotification(
-            getSendConnectionRequestNotification(request, {
+            getSendConnectionRequestNotification([request], {
               onClick: () => setConnectionRequestsVisible(true),
             })
           );
@@ -175,26 +185,18 @@ export default function App({
     };
   }
 
-  function fetchConnectionRequests(page?: number) {
-    get<Page<SendConnectionRequest>>(ApiRoute.CONNECTION_REQUESTS(), {
+  function fetchConnectionRequests(
+    page?: number
+  ): Promise<Page<SendConnectionRequest>> {
+    return get<Page<SendConnectionRequest>>(ApiRoute.CONNECTION_REQUESTS(), {
       page: page,
-    }).then((requests) => {
-      requests.page
-        .filter((request) => !request.seen)
-        .forEach((request) => {
-          onNewNotification(
-            getSendConnectionRequestNotification(request, {
-              onClick: () => setConnectionRequestsVisible(true),
-            })
-          );
-        });
-
-      setConnectionRequestsPage(requests);
+      size: 10,
+      sort: "seen,subject",
     });
   }
 
-  function fetchConnections() {
-    get<Connection[]>(ApiRoute.CONNECTIONS()).then(setConnections);
+  function fetchConnections(): Promise<Connection[]> {
+    return get<Connection[]>(ApiRoute.CONNECTIONS());
   }
 
   function handleRequestAnswered(
@@ -256,7 +258,7 @@ export default function App({
       return;
     }
 
-    fetchConnectionRequests(meta.page - 1);
+    fetchConnectionRequests(meta.page - 1).then(setConnectionRequestsPage);
   }
 
   function nextConnectionRequestsPage() {
@@ -270,6 +272,6 @@ export default function App({
       return;
     }
 
-    fetchConnectionRequests(meta.page + 1);
+    fetchConnectionRequests(meta.page + 1).then(setConnectionRequestsPage);
   }
 }

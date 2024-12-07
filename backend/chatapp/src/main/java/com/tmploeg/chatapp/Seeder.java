@@ -19,22 +19,12 @@ public class Seeder implements CommandLineRunner {
   private final UserRepository userRepository;
   private final ConnectionRequestRepository connectionRequestRepository;
 
-  private static final int SEED_USER_COUNT = 20;
+  private static final int SEED_USER_COUNT = 100;
 
   @Override
   public void run(String... args) throws Exception {
     seedUsers();
-    //    seedConnectionRequests();
-
-    User user_0 = userRepository.findById("testuser_0").get();
-    for (User user :
-        userRepository.findAll().stream()
-            .filter(u -> !u.getUsername().equals("testuser_0"))
-            .toList()) {
-      ConnectionRequest request = new ConnectionRequest(user_0, user, LocalDateTime.now());
-      request.setState(ConnectionRequestState.ACCEPTED);
-      connectionRequestRepository.save(request);
-    }
+    seedConnectionRequests();
   }
 
   private void seedUsers() {
@@ -67,6 +57,8 @@ public class Seeder implements CommandLineRunner {
 
     LocalDateTime now = LocalDateTime.now();
 
+    ConnectionRequestState[] states = ConnectionRequestState.values();
+
     for (int i = 0; i < users.size() - 1; i++) {
       if (r.nextDouble() > 0.75) {
         continue;
@@ -77,7 +69,9 @@ public class Seeder implements CommandLineRunner {
       User connector = r.nextBoolean() ? user0 : current;
       User connectee = connector == user0 ? current : user0;
 
-      requests.add(new ConnectionRequest(connector, connectee, now));
+      ConnectionRequest request = new ConnectionRequest(connector, connectee, now);
+      request.setState(states[r.nextInt(states.length)]);
+      requests.add(request);
     }
 
     connectionRequestRepository.saveAll(requests);
